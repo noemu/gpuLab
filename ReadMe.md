@@ -10,4 +10,4 @@
 * open Project
 # Screenshots
 ![Plattform](https://github.com/noemu/gpuLab/raw/master/images/readme/cmakeConfig1.PNG)
-![Plattform](https://github.com/noemu/gpuLab/raw/master/images/readme/cmakeConfig2.png)
+![Plattform](https://raw.githubusercontent.com/noemu/gpuLab/master/images/readme/cmakeConfig2.PNG)
