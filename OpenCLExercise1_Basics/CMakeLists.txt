@@ -13,18 +13,12 @@ set(Boost_USE_MULTITHREADED ON)
 
 #SET(BOOST_ROOT "D:/Librarys/boost")
 #set(BOOST_LIBRARYDIR "D:/librarys/boost/stage/lib")
-set(Boost_DEBUG 1) #debug option
+set(Boost_DEBUG 0) #debug option
 
 LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
 find_package(OpenCL REQUIRED)
 find_package(Boost COMPONENTS filesystem REQUIRED)
-
-message(STATUS "Found OpenCL Include Dir: ${OpenCL_INCLUDE_DIRS}")
-message(STATUS "Found OpenCL Library Dir: ${OpenCL_LIBRARY}")
-
-message(STATUS "Found BOOST Include Dir: ${Boost_INCLUDE_DIRS}")
-message(STATUS "Found BOOST Library Dir: ${Boost_CORE_LIBRARY}")
 
 #find dbghelp
 if(MSVC AND NOT DEFINED DBGHELP_INCLUDE_DIR AND NOT DEFINED DBGHELP_LIBRARY)
@@ -55,10 +49,20 @@ source_group("Header Files" FILES ${header_files})
 source_group("Source Files" FILES ${source_files})
 source_group("Client Files" FILES ${client_files})
 
+#some status messages
+message(STATUS "\n-------------------------------------")
+message(STATUS "Found OpenCL Include Dir: ${OpenCL_INCLUDE_DIRS}")
+message(STATUS "Found OpenCL Library Dir: ${OpenCL_LIBRARY}")
+message(STATUS "-------------------------------------")
+message(STATUS "Found BOOST Include Dir: ${Boost_INCLUDE_DIRS}")
+message(STATUS "Found BOOST Library Dir: ${Boost_FILESYSTEM_LIBRARY}")
+message(STATUS "-------------------------------------")
+message(STATUS "Found Windows DEBUG Library: ${DBGHELP_LIBRARY}")
+message(STATUS "-------------------------------------\n")
 
 #include_directories(${client_files})
 include_directories(${OpenCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${GPULAB_LIB_DIR}) #header files
 add_executable (${PROJECT_NAME} ${source_files} ${lib_source_files_CPP} ${lib_source_files_C}) #files to compile
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON) #idk
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${DBGHELP_LIBRARY}) #link static/dynamic libraries
-set_target_properties(${PROJECT_NAME} PROPERTIES    VS_DEBUGGER_WORKING_DIRECTORY "${GPULAB_DIR}") #set correct relative path to debugger, to find the cl files
+set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GPULAB_DIR}") #set correct relative path to debugger, to find the cl files
