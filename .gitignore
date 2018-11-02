@@ -7,8 +7,8 @@
 *.db-wal
 *.db-shm
 *.db
-OpenCLExercise1_Basics/build/CMakeCache.txt
 *.stamp
 *.tlog
 *.bin
 OpenCLExercise1_Basics/build/
+OpenCLExercise1_Basics/bin/
