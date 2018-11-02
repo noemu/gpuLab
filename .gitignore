@@ -1,0 +1,14 @@
+*.lastbuildstate
+*.vcxproj
+*.filters
+*.cmake
+*.sln
+*.ipch
+*.db-wal
+*.db-shm
+*.db
+OpenCLExercise1_Basics/build/CMakeCache.txt
+*.stamp
+*.tlog
+*.bin
+OpenCLExercise1_Basics/build/
