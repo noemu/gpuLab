@@ -9,5 +9,5 @@
 * press generate
 * open Project
 # Screenshots
-![Plattform](/images/readme/cmakeConfig1.png)
-![Plattform](/images/readme/cmakeConfig2.png)
+![Plattform](https://github.com/noemu/gpuLab/raw/master/images/readme/cmakeConfig1.PNG)
+![Plattform](https://github.com/noemu/gpuLab/raw/master/images/readme/cmakeConfig2.png)
