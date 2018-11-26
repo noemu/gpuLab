@@ -1,0 +1,170 @@
+16:10:29 **** Incremental Build of configuration Debug for project OpenCLExercise6_PrefixSum ****
+make all 
+Building file: ../src/OpenCLExercise6_PrefixSum.cpp
+Invoking: GCC C++ Compiler
+g++ -DOMPI_SKIP_MPICXX -DCL_USE_DEPRECATED_OPENCL_1_1_APIS -I"/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib" -I/usr/include/mpi -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/OpenCLExercise6_PrefixSum.d" -MT"src/OpenCLExercise6_PrefixSum.d" -o "src/OpenCLExercise6_PrefixSum.o" "../src/OpenCLExercise6_PrefixSum.cpp"
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp: In constructor ‘cl::Sampler::Sampler(const cl::Context&, cl_bool, cl_addressing_mode, cl_filter_mode, cl_int*)’:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:4316:21: warning: ‘_cl_sampler* clCreateSampler(cl_context, cl_bool, cl_addressing_mode, cl_filter_mode, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateSampler(
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1366:1: note: declared here
+ clCreateSampler(cl_context          /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:4316:21: warning: ‘_cl_sampler* clCreateSampler(cl_context, cl_bool, cl_addressing_mode, cl_filter_mode, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateSampler(
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1366:1: note: declared here
+ clCreateSampler(cl_context          /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:4321:19: warning: ‘_cl_sampler* clCreateSampler(cl_context, cl_bool, cl_addressing_mode, cl_filter_mode, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+             &error);
+                   ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1366:1: note: declared here
+ clCreateSampler(cl_context          /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp: In constructor ‘cl::CommandQueue::CommandQueue(cl_command_queue_properties, cl_int*)’:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5126:25: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+             object_ = ::clCreateCommandQueue(
+                         ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5126:25: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+             object_ = ::clCreateCommandQueue(
+                         ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5127:56: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+                 context(), device(), properties, &error);
+                                                        ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp: In constructor ‘cl::CommandQueue::CommandQueue(const cl::Context&, cl_command_queue_properties, cl_int*)’:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5157:21: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(context(), devices[0](), properties, &error);
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5157:21: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(context(), devices[0](), properties, &error);
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5157:85: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(context(), devices[0](), properties, &error);
+                                                                                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp: In constructor ‘cl::CommandQueue::CommandQueue(const cl::Context&, const cl::Device&, cl_command_queue_properties, cl_int*)’:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5174:21: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5174:21: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5175:52: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+             context(), device(), properties, &error);
+                                                    ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp: In member function ‘cl_int cl::CommandQueue::enqueueTask(const cl::Kernel&, const std::vector<cl::Event>*, cl::Event*) const’:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5951:15: warning: ‘cl_int clEnqueueTask(cl_command_queue, cl_kernel, cl_uint, _cl_event* const*, _cl_event**)’ is deprecated [-Wdeprecated-declarations]
+             ::clEnqueueTask(
+               ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1373:1: note: declared here
+ clEnqueueTask(cl_command_queue  /* command_queue */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5951:15: warning: ‘cl_int clEnqueueTask(cl_command_queue, cl_kernel, cl_uint, _cl_event* const*, _cl_event**)’ is deprecated [-Wdeprecated-declarations]
+             ::clEnqueueTask(
+               ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1373:1: note: declared here
+ clEnqueueTask(cl_command_queue  /* command_queue */,
+ ^
+In file included from ../src/OpenCLExercise6_PrefixSum.cpp:11:0:
+/home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:5955:46: warning: ‘cl_int clEnqueueTask(cl_command_queue, cl_kernel, cl_uint, _cl_event* const*, _cl_event**)’ is deprecated [-Wdeprecated-declarations]
+                 (event != NULL) ? &tmp : NULL),
+                                              ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise6_PrefixSum/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise6_PrefixSum.cpp:11:
+/usr/include/CL/cl.h:1373:1: note: declared here
+ clEnqueueTask(cl_command_queue  /* command_queue */,
+ ^
+Finished building: ../src/OpenCLExercise6_PrefixSum.cpp
+ 
+Building target: OpenCLExercise6_PrefixSum
+Invoking: GCC C++ Linker
+g++  -o "OpenCLExercise6_PrefixSum"  ./src/OpenCLExercise6_PrefixSum.o  ./lib/OpenCL/Device.o ./lib/OpenCL/Error.o ./lib/OpenCL/Event.o ./lib/OpenCL/GetError.o ./lib/OpenCL/Program.o  ./lib/Core/Assert.o ./lib/Core/CheckedCast.o ./lib/Core/Error.o ./lib/Core/Exception.o ./lib/Core/Image.o ./lib/Core/Memory.o ./lib/Core/NumericException.o ./lib/Core/StrError.o ./lib/Core/Time.o ./lib/Core/TimeSpan.o ./lib/Core/Type.o ./lib/Core/WindowsError.o   -ldl -lboost_system -lboost_filesystem -lOpenCL
+Finished building target: OpenCLExercise6_PrefixSum
+ 
+
+16:10:32 Build Finished (took 2s.425ms)
+

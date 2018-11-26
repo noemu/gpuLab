@@ -1,0 +1,170 @@
+15:03:14 **** Incremental Build of configuration Debug for project OpenCLExercise5_VolumeRendering ****
+make all 
+Building file: ../src/OpenCLExercise5_VolumeRendering.cpp
+Invoking: GCC C++ Compiler
+g++ -DOMPI_SKIP_MPICXX -DCL_USE_DEPRECATED_OPENCL_1_1_APIS -I"/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib" -I/usr/include/hdf5/serial -I/usr/include/mpi -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/OpenCLExercise5_VolumeRendering.d" -MT"src/OpenCLExercise5_VolumeRendering.d" -o "src/OpenCLExercise5_VolumeRendering.o" "../src/OpenCLExercise5_VolumeRendering.cpp"
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp: In constructor ‘cl::Sampler::Sampler(const cl::Context&, cl_bool, cl_addressing_mode, cl_filter_mode, cl_int*)’:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:4316:21: warning: ‘_cl_sampler* clCreateSampler(cl_context, cl_bool, cl_addressing_mode, cl_filter_mode, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateSampler(
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1366:1: note: declared here
+ clCreateSampler(cl_context          /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:4316:21: warning: ‘_cl_sampler* clCreateSampler(cl_context, cl_bool, cl_addressing_mode, cl_filter_mode, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateSampler(
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1366:1: note: declared here
+ clCreateSampler(cl_context          /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:4321:19: warning: ‘_cl_sampler* clCreateSampler(cl_context, cl_bool, cl_addressing_mode, cl_filter_mode, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+             &error);
+                   ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1366:1: note: declared here
+ clCreateSampler(cl_context          /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp: In constructor ‘cl::CommandQueue::CommandQueue(cl_command_queue_properties, cl_int*)’:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5126:25: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+             object_ = ::clCreateCommandQueue(
+                         ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5126:25: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+             object_ = ::clCreateCommandQueue(
+                         ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5127:56: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+                 context(), device(), properties, &error);
+                                                        ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp: In constructor ‘cl::CommandQueue::CommandQueue(const cl::Context&, cl_command_queue_properties, cl_int*)’:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5157:21: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(context(), devices[0](), properties, &error);
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5157:21: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(context(), devices[0](), properties, &error);
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5157:85: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(context(), devices[0](), properties, &error);
+                                                                                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp: In constructor ‘cl::CommandQueue::CommandQueue(const cl::Context&, const cl::Device&, cl_command_queue_properties, cl_int*)’:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5174:21: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5174:21: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+         object_ = ::clCreateCommandQueue(
+                     ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5175:52: warning: ‘_cl_command_queue* clCreateCommandQueue(cl_context, cl_device_id, cl_command_queue_properties, cl_int*)’ is deprecated [-Wdeprecated-declarations]
+             context(), device(), properties, &error);
+                                                    ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1359:1: note: declared here
+ clCreateCommandQueue(cl_context                     /* context */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp: In member function ‘cl_int cl::CommandQueue::enqueueTask(const cl::Kernel&, const std::vector<cl::Event>*, cl::Event*) const’:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5951:15: warning: ‘cl_int clEnqueueTask(cl_command_queue, cl_kernel, cl_uint, _cl_event* const*, _cl_event**)’ is deprecated [-Wdeprecated-declarations]
+             ::clEnqueueTask(
+               ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1373:1: note: declared here
+ clEnqueueTask(cl_command_queue  /* command_queue */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5951:15: warning: ‘cl_int clEnqueueTask(cl_command_queue, cl_kernel, cl_uint, _cl_event* const*, _cl_event**)’ is deprecated [-Wdeprecated-declarations]
+             ::clEnqueueTask(
+               ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1373:1: note: declared here
+ clEnqueueTask(cl_command_queue  /* command_queue */,
+ ^
+In file included from ../src/OpenCLExercise5_VolumeRendering.cpp:15:0:
+/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:5955:46: warning: ‘cl_int clEnqueueTask(cl_command_queue, cl_kernel, cl_uint, _cl_event* const*, _cl_event**)’ is deprecated [-Wdeprecated-declarations]
+                 (event != NULL) ? &tmp : NULL),
+                                              ^
+In file included from /usr/include/CL/opencl.h:42:0,
+                 from /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/OpenCL/cl-patched.hpp:187,
+                 from ../src/OpenCLExercise5_VolumeRendering.cpp:15:
+/usr/include/CL/cl.h:1373:1: note: declared here
+ clEnqueueTask(cl_command_queue  /* command_queue */,
+ ^
+Finished building: ../src/OpenCLExercise5_VolumeRendering.cpp
+ 
+Building target: OpenCLExercise5_VolumeRendering
+Invoking: GCC C++ Linker
+g++ -L/usr/lib/x86_64-linux-gnu/hdf5/serial -L/opt/amdgpu-pro/lib/x86_64-linux-gnu/ -o "OpenCLExercise5_VolumeRendering"  ./src/OpenCLExercise5_VolumeRendering.o  ./lib/OpenCL/Device.o ./lib/OpenCL/Error.o ./lib/OpenCL/Event.o ./lib/OpenCL/GetError.o ./lib/OpenCL/Program.o  ./lib/Math/Abs.o ./lib/Math/Array.o ./lib/Math/DiagMatrix3.o ./lib/Math/Float.o ./lib/Math/Vector2.o ./lib/Math/Vector3.o  ./lib/HDF5/Array.o ./lib/HDF5/AtomicType.o ./lib/HDF5/AtomicTypes.o ./lib/HDF5/Attribute.o ./lib/HDF5/BaseTypes.o ./lib/HDF5/ComplexConversion.o ./lib/HDF5/CompoundType.o ./lib/HDF5/DataSet.o ./lib/HDF5/DataSpace.o ./lib/HDF5/DataType.o ./lib/HDF5/DataTypes.o ./lib/HDF5/DelayedArray.o ./lib/HDF5/Exception.o ./lib/HDF5/File.o ./lib/HDF5/Group.o ./lib/HDF5/IdComponent.o ./lib/HDF5/Matlab.o ./lib/HDF5/MatlabDiagMatrix3.o ./lib/HDF5/MatlabVector2.o ./lib/HDF5/MatlabVector3.o ./lib/HDF5/Object.o ./lib/HDF5/OpaqueType.o ./lib/HDF5/PropList.o ./lib/HDF5/PropLists.o ./lib/HDF5/ReferenceType.o ./lib/HDF5/SerializationKey.o ./lib/HDF5/Type.o ./lib/HDF5/Util.o  ./lib/Core/Assert.o ./lib/Core/CheckedCast.o ./lib/Core/Error.o ./lib/Core/Exception.o ./lib/Core/Image.o ./lib/Core/Memory.o ./lib/Core/NumericException.o ./lib/Core/StrError.o ./lib/Core/Time.o ./lib/Core/TimeSpan.o ./lib/Core/Type.o ./lib/Core/WindowsError.o  ./lib/CT/CTFloat.o ./lib/CT/DataFiles.o   -ldl -lboost_system -lboost_filesystem -lOpenCL -lhdf5 -lglut -lGLEW -lGL
+Finished building target: OpenCLExercise5_VolumeRendering
+ 
+
+15:03:19 Build Finished (took 4s.725ms)
+

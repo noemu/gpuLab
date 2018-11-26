@@ -1,0 +1,6 @@
+14:55:20 **** Incremental Build of configuration Release for project OpenCLExercise3_Sobel ****
+make all 
+make: Nothing to be done for 'all'.
+
+14:55:21 Build Finished (took 371ms)
+

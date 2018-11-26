@@ -1,0 +1,18 @@
+#ifndef __OPENCL_VERSION__
+#include <OpenCL/OpenCLKernel.hpp> // Hack to make syntax highlighting in Eclipse work
+#endif
+
+__attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
+__kernel void prefixSumKernel(__global const float* d_input, __global float* d_output, float sum) {
+
+	__shared__ float temp[];
+
+	int itemId = get_group_id(0);
+	int workId = get_local_id(0);
+	//TODO
+}
+
+__attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
+__kernel void blockAddKernel(/*...*/) {
+	//TODO
+}
