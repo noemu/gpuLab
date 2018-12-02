@@ -1,0 +1,56 @@
+#ifndef __OPENCL_VERSION__
+#include <OpenCL/OpenCLKernel.hpp> // Hack to make syntax highlighting in Eclipse work
+#endif
+
+__kernel void renderKernel (__global image3d_t h_input, __global const float* invViewMatrix,float tstep, __global const float* d_input) {
+	int xIndex = get_global_id(0);
+	int yIndex = get_global_id(1);
+
+	float outX = xIndex/get_global_size(0);
+
+
+	uint index = (y * outX) + x;
+
+	float u = (x / (float) (outX - 1))*2.0f-1.0f;
+	float v = (y / (float) (outY - 1))*2.0f-1.0f;
+
+	float3 boxMin = float3(0, 0, 0);
+	float3 boxMax = float3(countX, countY, countZ);
+
+	// calculate eye ray in world space
+	float3 eyeRay_o;
+	float3 eyeRay_d;
+
+	eyeRay_o = float3(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11]);
+
+	float3 temp = normalize(float3(u, v, -2.0f));
+	eyeRay_d.x = dot(temp, (float3(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2])));
+	eyeRay_d.y = dot(temp, (float3(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6])));
+	eyeRay_d.z = dot(temp, (float3(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10])));
+
+	// find intersection with box
+	float tnear, tfar;
+	int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
+	if (!hit) {
+		// set output to 0
+		h_output[index] = 0;
+		continue;
+	}
+	if (tnear < 0.0f)
+		tnear = 0.0f;     // clamp to near plane
+
+	// march along ray from back to front, accumulating color
+	float sum = 0;
+	for (float t = tfar; t >= tnear; t -= tstep) {
+		float3 pos = eyeRay_o + eyeRay_d*t;
+
+		// do 3D interpolation
+		float sample = interp3(h_input, countX, countY, countZ, pos);
+
+		// accumulate result
+		sum += sample;
+	}
+
+	// write output value
+	h_output[index] = sum * brightness;
+}

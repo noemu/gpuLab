@@ -1,0 +1,44 @@
+#ifndef __OPENCL_VERSION__
+#include <OpenCL/OpenCLKernel.hpp> // Hack to make syntax highlighting in Eclipse work
+#endif
+
+int pow(int a, int b){
+	return pow(<float>a,<float>b);
+}
+
+__attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
+__kernel void prefixSumKernel(__global const int* d_input, __global int* d_output, __global int* d_sum) {
+
+	__local float temp[WG_SIZE];
+
+	int itemId = get_global_id(0);
+	int workId = get_local_id(0);
+	int workGroupNumber = get_group_id(0);
+
+
+
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+
+	for(int d = 1; d < WG_SIZE; d*=2){
+		if(workId - d >= 0.0f){
+			temp[workId] = temp[workId]+temp[workId-d];
+		}else{
+			//break;
+		}
+		barrier(CLK_LOCAL_MEM_FENCE);
+	}
+
+	if(workId ==  WG_SIZE){
+		d_sum[workGroupNumber] = temp[workId];
+	}
+
+	d_output[itemId] = temp[workId];
+
+}
+
+__attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
+__kernel void blockAddKernel(/*...*/) {
+	//TODO
+}

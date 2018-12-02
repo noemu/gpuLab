@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;OpenCLExercise3_Sobel/src/OpenCLExercise3_Sobel2.cl&apos;" deleteContents="false" description="Delete resource &apos;OpenCLExercise3_Sobel/src/OpenCLExercise3_Sobel2.cl&apos;" element1="/OpenCLExercise3_Sobel/src/OpenCLExercise3_Sobel2.cl" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1541425170891"/>
+</session>
