@@ -1,8 +1,11 @@
-//////////////////////////////////////////////////////////////////////////////
-// OpenCL Project 0X: XXXX
-//////////////////////////////////////////////////////////////////////////////
+/**
+	Canny-Edge Detector
+	main.cpp
+	Create and execute the GPU-Kernel.
 
-// includes
+	//TODO Surnames @author Ellen ..., Marvin ..., Phong ..., Rafael Jarosch
+*/
+
 #include <stdio.h>
 
 #include <Core/Assert.hpp>
@@ -22,19 +25,15 @@
 
 #include <boost/lexical_cast.hpp>
 
-//////////////////////////////////////////////////////////////////////////////
-// CPU implementation
-//////////////////////////////////////////////////////////////////////////////
+/**
+	Create a context
 
+	@return cl::Context
+*/
+cl::Context createContext() {
 
-
-//////////////////////////////////////////////////////////////////////////////
-// Main function
-//////////////////////////////////////////////////////////////////////////////
-int main(int argc, char** argv) {
-	// Create a context
 	//cl::Context context(CL_DEVICE_TYPE_GPU);
-        std::vector<cl::Platform> platforms;
+	std::vector<cl::Platform> platforms;
 	cl::Platform::get(&platforms);
 	if (platforms.size() == 0) {
 		std::cerr << "No platforms found" << std::endl;
@@ -47,15 +46,24 @@ int main(int argc, char** argv) {
 			break;
 		}
 	}
-	cl_context_properties prop[4] = { CL_CONTEXT_PLATFORM, (cl_context_properties) platforms[platformId] (), 0, 0 };
+	cl_context_properties prop[4] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[platformId](), 0, 0 };
 	std::cout << "Using platform '" << platforms[platformId].getInfo<CL_PLATFORM_NAME>() << "' from '" << platforms[platformId].getInfo<CL_PLATFORM_VENDOR>() << "'" << std::endl;
 	cl::Context context(CL_DEVICE_TYPE_GPU, prop);
+	return context;
+}
 
+/**
+	Build-Kernel
+
+	@param cl:Context
+	@param deviceNr
+	@return cl:program
+*/
+cl::Program buildKernel(cl::Context context, int deviceNr) {
 	// Get a device of the context
-	int deviceNr = argc < 2 ? 1 : atoi(argv[1]);
 	std::cout << "Using device " << deviceNr << " / " << context.getInfo<CL_CONTEXT_DEVICES>().size() << std::endl;
-	ASSERT (deviceNr > 0);
-	ASSERT ((size_t) deviceNr <= context.getInfo<CL_CONTEXT_DEVICES>().size());
+	ASSERT(deviceNr > 0);
+	ASSERT((size_t)deviceNr <= context.getInfo<CL_CONTEXT_DEVICES>().size());
 	cl::Device device = context.getInfo<CL_CONTEXT_DEVICES>()[deviceNr - 1];
 	std::vector<cl::Device> devices;
 	devices.push_back(device);
@@ -74,6 +82,19 @@ int main(int argc, char** argv) {
 	// This will pass the value of wgSize as a preprocessor constant "WG_SIZE" to the OpenCL C compiler
 	OpenCL::buildProgram(program, devices, "-DWG_SIZE=" + boost::lexical_cast<std::string>(wgSize));
 
+	return program;
+}
+
+/**
+	Main-Method
+
+	@param argc: start-argument
+	@return Error-Code
+*/
+int main(int argc, char** argv) {
+	cl::Context context = createContext();
+
+	cl::Program program = buildKernel(context, argc < 2 ? 1 : atoi(argv[1])); //if no start argument is given, use first device
 
 	// Create a kernel
 	cl::Kernel kernel(program, "kernel1");
