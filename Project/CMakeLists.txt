@@ -60,9 +60,10 @@ message(STATUS "-------------------------------------")
 message(STATUS "Found Windows DEBUG Library: ${DBGHELP_LIBRARY}")
 message(STATUS "-------------------------------------\n")
 
+
 #include_directories(${client_files})
 include_directories(${OpenCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${GPULAB_LIB_DIR}) #header files
-add_executable (${PROJECT_NAME} ${source_files} ${lib_source_files_CPP} ${lib_source_files_C}) #files to compile
+add_executable (${PROJECT_NAME} ${source_files} ${public_header_files} ${header_files} ${lib_source_files_CPP} ${lib_source_files_C} ${client_files}) #files to compile/add to solution
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON) #idk
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${DBGHELP_LIBRARY}) #link static/dynamic libraries
 set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GPULAB_DIR}") #set correct relative path to debugger, to find the cl files
