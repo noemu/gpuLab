@@ -27,15 +27,105 @@ float getStrengthValue(__local float* l_strength, __global float* g_strength, in
 
 
 /**
+a local Buffer, that also copy the values around the workgroup Buffer
+*/
+void copyImageToLocal(__local float* l_Image, __read_only image2d_t h_input) {
+
+    int l_Pos_x = get_local_id(0); // local Positins
+    int l_Pos_y = get_local_id(1);
+    int l_Pos = l_Pos_x + WG_SIZE_X + l_Pos_y;
+
+    int t_Pos_x = l_Pos_x + 1; // positions in local memory Buffer 'l_Image'
+    int t_Pos_y = l_Pos_y + 1;
+    int t_Size_x = WG_SIZE_X + 2;
+
+    int t_Pos = t_Pos_x + t_Size_x * t_Pos_y;
+
+    // fill local Buffer
+    l_Image[t_Pos] = getValueGlobal(h_input, get_global_id(0), get_global_id(1));
+
+    // add outer border to local buffer
+    float test = getValueGlobal(h_input, get_global_id(0), get_global_id(1));
+    // left side
+    if (l_Pos_x == 0) {
+        // left edge
+        l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y)] = getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1));
+        // lower left corner
+        if (l_Pos_y == 0) {
+            l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y - 1)] =
+                getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1) - 1);
+        }
+        // upper left corner
+        if (l_Pos_y == WG_SIZE_Y - 1) {
+            l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y + 1)] =
+                getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1) + 1);
+        }
+    }
+    // right side
+    if (l_Pos_x == WG_SIZE_X - 1) {
+        // right edge
+        l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y)] = getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1));
+        // lower right corner
+        if (l_Pos_y == 0) {
+            l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y - 1)] =
+                getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1) - 1);
+        }
+        // upper right corner
+        if (l_Pos_y == WG_SIZE_Y - 1) {
+            l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y + 1)] =
+                getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1) + 1);
+        }
+    }
+    // lower edge
+    if (l_Pos_y == 0) {
+        l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y - 1)] = getValueGlobal(h_input, get_global_id(0), get_global_id(1) - 1);
+    }
+    // upper edge
+    if (l_Pos_y == WG_SIZE_Y - 1) {
+        l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y + 1)] = getValueGlobal(h_input, get_global_id(0), get_global_id(1) + 1);
+    }
+}
+
+
+__kernel void gaussConvolution(__read_only image2d_t h_input, __write_only image2d_t h_output) {
+    __local float l_Image[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add also values above/lower/left/right from work group
+
+
+    int l_Pos_x = get_local_id(0); // local Positins
+    int l_Pos_y = get_local_id(1);
+    int l_Pos = l_Pos_x + WG_SIZE_X + l_Pos_y;
+
+    int t_Pos_x = l_Pos_x + 1; // positions in local memory Buffer 'l_Image'
+    int t_Pos_y = l_Pos_y + 1;
+    int t_Size_x = WG_SIZE_X + 2;
+
+    // copy Values to local Buffer
+    copyImageToLocal(l_Image, h_input);
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+
+     //calculate the Convolution with a Gauss Kernel
+    float mm = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y - 1)];
+    float mp = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y + 1)];
+    float pm = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y - 1)];
+    float pp = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y + 1)];
+    float mn = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y)];
+    float pn = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y)];
+    float nm = l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y - 1)];
+    float np = l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y + 1)];
+    float nn = l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y)];
+
+	float value = 1.0 / 16.0 * (mm + mp + pm + pp + 2.0 * (nm + np + mn + mp) + 4.0 * nn);
+
+	write_imagef(h_output, (int2){get_global_id(0), get_global_id(1)}, (float4){value, value, value, 1});
+}
+
+/**
 canny Edge Kernel with a local Buffer, that also copy the values around the workgroup Buffer
 */
 __kernel void cannyEdge1(
     __read_only image2d_t h_input, __write_only image2d_t h_output, __global float* h_strength_output) {
     // copy to local memory
-
-    size_t localSizeX = get_local_size(0);
-    size_t localSizeY = get_local_size(1);
-
 
     __local float l_Image[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add also values above/lower/left/right from work group
 
@@ -48,54 +138,8 @@ __kernel void cannyEdge1(
     int t_Pos_y = l_Pos_y + 1;
     int t_Size_x = WG_SIZE_X + 2;
 
-    int t_Pos = t_Pos_x + t_Size_x * t_Pos_y;
-
-    int x = get_global_id(0);
-    int y = get_global_id(1);
-
-
-    l_Image[t_Pos] = getValueGlobal(h_input, get_global_id(0), get_global_id(1));
-
-    float test = getValueGlobal(h_input, get_global_id(0), get_global_id(1));
-    // left
-    if (l_Pos_x == 0) {
-        l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y)] = getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1));
-        // lower
-        if (l_Pos_y == 0) {
-            l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y - 1)] =
-                getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1) - 1);
-        }
-        // upper
-        if (l_Pos_y == WG_SIZE_Y - 1) {
-            l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y + 1)] =
-                getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1) + 1);
-        }
-    }
-    // right
-    if (l_Pos_x == WG_SIZE_X - 1) {
-        l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y)] = getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1));
-        // lower
-        if (l_Pos_y == 0) {
-            l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y - 1)] =
-                getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1) - 1);
-        }
-        // upper
-        if (l_Pos_y == WG_SIZE_Y - 1) {
-            l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y + 1)] =
-                getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1) + 1);
-        }
-    }
-    // lower
-    if (l_Pos_y == 0) {
-        l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y - 1)] =
-            getValueGlobal(h_input, get_global_id(0), get_global_id(1) - 1);
-    }
-    // upper
-    if (l_Pos_y == WG_SIZE_Y - 1) {
-        l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y + 1)] = getValueGlobal(h_input, get_global_id(0), get_global_id(1) + 1);
-    }
-
-
+	//copy Values to local Buffer
+    copyImageToLocal(l_Image, h_input);
     barrier(CLK_LOCAL_MEM_FENCE);
 
 
@@ -156,7 +200,6 @@ __kernel void cannyEdge1(
             }
         }
     }
-
 
 
     // Non Maximum Suppression

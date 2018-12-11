@@ -16,7 +16,8 @@ private:
     cl::Program program;
     cl::Context context;
 
-    cl::Kernel kernel;
+    cl::Kernel cannyE_kernel;
+    cl::Kernel gaussC_kernel;
 
     cl::Event copyToClientEvent;
     cl::Event executionEvent;

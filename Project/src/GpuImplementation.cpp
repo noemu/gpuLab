@@ -73,7 +73,8 @@ GpuImplementation::GpuImplementation(int deviceNr) {
     program = buildKernel(context, deviceNr); // if no start argument is given, use first device
 
     // Create a kernel
-    kernel = cl::Kernel(program, "cannyEdge1");
+    cannyE_kernel = cl::Kernel(program, "cannyEdge1");
+    gaussC_kernel = cl::Kernel(program, "gaussConvolution");
 }
 
 GpuImplementation::~GpuImplementation() {}
@@ -100,12 +101,23 @@ void GpuImplementation::execute() {
     cl::Image2D maximised_strength(
         context, CL_MEM_WRITE_ONLY, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
 
-    kernel.setArg<cl::Image2D>(0, image);
-    kernel.setArg<cl::Image2D>(1, maximised_strength);
-    kernel.setArg<cl::Buffer>(2, full_strength);
+	gaussC_kernel.setArg<cl::Image2D>(0, image);
+    gaussC_kernel.setArg<cl::Image2D>(1, image);
 
-    queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+    queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
         cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+    queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+    queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+
+    cannyE_kernel.setArg<cl::Image2D>(0, image);
+    cannyE_kernel.setArg<cl::Image2D>(1, maximised_strength);
+    cannyE_kernel.setArg<cl::Buffer>(2, full_strength);
+
+    queue.enqueueNDRangeKernel(cannyE_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+
 
 
     // copy to output
@@ -143,7 +155,7 @@ void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
     // for (int i = 0; i < count; i++) h_input[i] = (rand() % 100) / 5.0f - 10.0f;
     std::vector<float> inputData;
     std::size_t inputWidth, inputHeight;
-    Core::readImagePGM("Unbenannt.pgm", inputData, inputWidth, inputHeight);
+    Core::readImagePGM("lena.pgm", inputData, inputWidth, inputHeight);
 
 
 	imageWidth = inputWidth- (inputWidth % wgSizeX);
@@ -167,7 +179,7 @@ void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
     region[1] = imageHeight;
     region[2] = 1;
 
-    image = cl::Image2D(context, CL_MEM_READ_ONLY, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+    image = cl::Image2D(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
 
     queue.enqueueWriteImage(
         image, true, origin, region, imageWidth * sizeof(float), 0, &(h_input[0]), NULL, &copyToClientEvent);
