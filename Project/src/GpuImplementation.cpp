@@ -53,15 +53,15 @@ cl::Program GpuImplementation::buildKernel(cl::Context context, int deviceNr) {
     // Create a command queue
     queue = cl::CommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE);
 
-    // Declare some values
-    std::size_t wgSize = 128;
-
     // Load the source code
     program = OpenCL::loadProgramSource(context, "src/kernel.cl");
     // Compile the source code. This is similar to program.build(devices) but will
     // print more detailed error messages This will pass the value of wgSize as a
     // preprocessor constant "WG_SIZE" to the OpenCL C compiler
-    OpenCL::buildProgram(program, devices, "-DWG_SIZE=" + boost::lexical_cast<std::string>(wgSize));
+    OpenCL::buildProgram(program, devices,
+        "-D WG_SIZE_X=" + boost::lexical_cast<std::string>(wgSizeX) +
+            " -D WG_SIZE_Y=" + boost::lexical_cast<std::string>(wgSizeY));
+
 
     return program;
 }
@@ -72,23 +72,13 @@ GpuImplementation::GpuImplementation(int deviceNr) {
     program = buildKernel(context, deviceNr); // if no start argument is given, use first device
 
     // Create a kernel
-    kernel = cl::Kernel(program, "kernel1");
+    kernel = cl::Kernel(program, "cannyEdge1");
 }
 
 GpuImplementation::~GpuImplementation() {}
 
 void GpuImplementation::execute() {
-    std::size_t wgSizeX = 10; // Hard coded Work Group Size, should be
-    std::size_t wgSizeY = 10;
 
-    ASSERT(imageHeight % wgSizeY == 0); // imagageWidth/height shpould be dividable by wgSize
-    ASSERT(imageWidth % wgSizeX == 0);
-
-    kernel.setArg<cl::Image2D>(0, image);
-    queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
-        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
-
-    // copy to output
     int count = imageWidth * imageHeight;
     std::vector<float> h_outputGpu(count);
     cl::size_t<3> origin;
@@ -97,8 +87,28 @@ void GpuImplementation::execute() {
     region[0] = imageWidth;
     region[1] = imageHeight;
     region[2] = 1;
-    queue.enqueueReadImage(
-        image, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(), NULL, &copyToHostEvent);
+    region[2] = 1;
+
+    ASSERT(imageHeight % wgSizeY == 0); // imagageWidth/height should be dividable by wgSize
+    ASSERT(imageWidth % wgSizeX == 0);
+
+
+	//cl::Image2D full_strength(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight); //fix read_imagef from read_write
+    cl::Buffer full_strength(context, CL_MEM_READ_WRITE, count * sizeof(float));
+    cl::Image2D maximised_strength(
+        context, CL_MEM_WRITE_ONLY, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+
+    kernel.setArg<cl::Image2D>(0, image);
+    kernel.setArg<cl::Image2D>(1, maximised_strength);
+    kernel.setArg<cl::Buffer>(2, full_strength);
+
+    queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+
+
+    // copy to output
+    queue.enqueueReadImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
+        NULL, &copyToHostEvent);
 }
 
 void GpuImplementation::printTimeMeasurement() {
