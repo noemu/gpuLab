@@ -1,6 +1,7 @@
 #include "GpuImplementation.h"
 
 #include <Core/Assert.hpp>
+#include <Core/Image.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -93,7 +94,8 @@ void GpuImplementation::execute() {
     ASSERT(imageWidth % wgSizeX == 0);
 
 
-	//cl::Image2D full_strength(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight); //fix read_imagef from read_write
+    // cl::Image2D full_strength(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+    // //fix read_imagef from read_write
     cl::Buffer full_strength(context, CL_MEM_READ_WRITE, count * sizeof(float));
     cl::Image2D maximised_strength(
         context, CL_MEM_WRITE_ONLY, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
@@ -109,6 +111,9 @@ void GpuImplementation::execute() {
     // copy to output
     queue.enqueueReadImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
         NULL, &copyToHostEvent);
+    //queue.enqueueReadBuffer(full_strength, true, 0, count * sizeof(float), h_outputGpu.data(), NULL, &copyToHostEvent);
+
+    Core::writeImagePGM("output_sobel_cpu.pgm", h_outputGpu, imageWidth, imageHeight);
 }
 
 void GpuImplementation::printTimeMeasurement() {
@@ -135,13 +140,22 @@ void GpuImplementation::printTimeMeasurement() {
 void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
 
     // random init, for testing
-    imageWidth = 200;
-    imageHeight = 200;
+    imageWidth = 640;
+    imageHeight = 480;
 
     int count = imageWidth * imageHeight;
     std::vector<float> h_input(count);
 
-    for (int i = 0; i < count; i++) h_input[i] = (rand() % 100) / 5.0f - 10.0f;
+    // for (int i = 0; i < count; i++) h_input[i] = (rand() % 100) / 5.0f - 10.0f;
+    std::vector<float> inputData;
+    std::size_t inputWidth, inputHeight;
+    Core::readImagePGM("Valve.pgm", inputData, inputWidth, inputHeight);
+    for (size_t j = 0; j < imageHeight; j++) {
+        for (size_t i = 0; i < imageWidth; i++) {
+            h_input[i + imageWidth * j] = inputData[(i % inputWidth) + inputWidth * (j % inputHeight)];
+        }
+    }
+
 
     // copyToClient
     cl::size_t<3> origin;

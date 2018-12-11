@@ -25,8 +25,8 @@ private:
     std::size_t imageWidth, imageHeight;
     cl::Image2D image;
 
-	std::size_t wgSizeX = 10; // ToDo no Hard coded Work Group Size
-	std::size_t wgSizeY = 10;
+	std::size_t wgSizeX = 16; // ToDo no Hard coded Work Group Size
+	std::size_t wgSizeY = 16;
 
 public:
     GpuImplementation(int deviceNr = 1);

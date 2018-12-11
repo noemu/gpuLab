@@ -14,7 +14,7 @@ float getValueGlobal(__read_only image2d_t image, int i, int j) {
 
 float getStrengthValue(__local float* l_strength,__global float* g_strength, int i, int j) {
     if (i < 0 || i >= WG_SIZE_X || j < 0 || j >= WG_SIZE_Y) {
-        return l_strength[i * WG_SIZE_Y + j];
+        return l_strength[i + WG_SIZE_X * j];
     }
 
     i = get_group_id(0) * WG_SIZE_X + i;
@@ -23,7 +23,7 @@ float getStrengthValue(__local float* l_strength,__global float* g_strength, int
     //return read_imagef(g_strength, sampler, (int2)(i, j)).x; //fails without log
 
     if (i < 0 || i >= get_global_size(0) || j < 0 || j >= get_global_size(1)) return 0;
-    return g_strength[i * get_global_size(1) + j];
+    return g_strength[j * get_global_size(0) + i];
 
 }
 
@@ -44,53 +44,53 @@ __kernel void cannyEdge1(
 
     int l_Pos_x = get_local_id(0); // local Positins
     int l_Pos_y = get_local_id(1);
-    int l_Pos = l_Pos_x * WG_SIZE_Y + l_Pos_y;
+    int l_Pos = l_Pos_x + WG_SIZE_X + l_Pos_y;
 
     int t_Pos_x = l_Pos_x + 1; // positions in local memory Buffer 'l_Image'
     int t_Pos_y = l_Pos_y + 1;
-    int t_Size_y = WG_SIZE_Y + 2;
+    int t_Size_x = WG_SIZE_X + 2;
 
-    int t_Pos = t_Pos_x * t_Size_y + t_Pos_y;
+    int t_Pos = t_Pos_x + t_Size_x * t_Pos_y;
 
 
     l_Image[t_Pos] = getValueGlobal(h_input, get_global_id(0), get_global_id(1));
 
     // left
     if (l_Pos_x == 0) {
-        l_Image[(t_Pos_x - 1) * t_Size_y + (t_Pos_y)] = getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1));
+        l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y)] = getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1));
         // upper left corner
         if (l_Pos_y == 0)
-            l_Image[(t_Pos_x - 1) * t_Size_y + (t_Pos_y - 1)] =
+            l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y - 1)] =
                 getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1) - 1);
     }
 
     // right
     if (l_Pos_x == WG_SIZE_X) {
-        l_Image[(t_Pos_x + 1) * t_Size_y + (t_Pos_y)] = getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1));
+        l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y)] = getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1));
 
         // lower right
         if (l_Pos_y == WG_SIZE_Y) {
-            l_Image[(t_Pos_x + 1) * t_Size_y + (t_Pos_y + 1)] =
+            l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y + 1)] =
                 getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1) + 1);
         }
     }
 
     // upper
     if (l_Pos_y == 0) {
-        l_Image[(t_Pos_x)*t_Size_y + (t_Pos_y - 1)] = getValueGlobal(h_input, get_global_id(0), get_global_id(1) - 1);
+        l_Image[(t_Pos_x)*t_Size_x + (t_Pos_y - 1)] = getValueGlobal(h_input, get_global_id(0), get_global_id(1) - 1);
         // upper right
         if (l_Pos_x == WG_SIZE_X) {
-            l_Image[(t_Pos_x + 1) * t_Size_y + (t_Pos_y - 1)] =
+            l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y - 1)] =
                 getValueGlobal(h_input, get_global_id(0) + 1, get_global_id(1) - 1);
         }
     }
 
     // lower
     if (l_Pos_y == WG_SIZE_Y) {
-        l_Image[(t_Pos_x)*t_Size_y + (t_Pos_y + 1)] = getValueGlobal(h_input, get_global_id(0), get_global_id(1) + 1);
+        l_Image[(t_Pos_x)*t_Size_x + (t_Pos_y + 1)] = getValueGlobal(h_input, get_global_id(0), get_global_id(1) + 1);
         // lower left
         if (l_Pos_x == 0) {
-            l_Image[(t_Pos_x - 1) * t_Size_y + (t_Pos_y + 1)] =
+            l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y + 1)] =
                 getValueGlobal(h_input, get_global_id(0) - 1, get_global_id(1) + 1);
         }
     }
@@ -99,19 +99,20 @@ __kernel void cannyEdge1(
 
 
     // calculate the Gradient with the Sobel Operator
-    float mm = l_Image[(t_Pos_x - 1) * t_Size_y + (t_Pos_y - 1)];
-    float mp = l_Image[(t_Pos_x - 1) * t_Size_y + (t_Pos_y + 1)];
-    float pm = l_Image[(t_Pos_x + 1) * t_Size_y + (t_Pos_y - 1)];
-    float pp = l_Image[(t_Pos_x + 1) * t_Size_y + (t_Pos_y + 1)];
+    float mm = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y - 1)];
+    float mp = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y + 1)];
+    float pm = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y - 1)];
+    float pp = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y + 1)];
 
-    float Gx = mm + 2 * l_Image[(t_Pos_x - 1) * t_Size_y + (t_Pos_y)] + mp - pm -
-               2 * l_Image[(t_Pos_x + 1) * t_Size_y + (t_Pos_y)] - pp;
+    float Gx = mm + 2 * l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y)] + mp - pm -
+               2 * l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y)] - pp;
 
-    float Gy = mm + 2 * l_Image[(t_Pos_x)*t_Size_y + (t_Pos_y - 1)] + pm - mp -
-               2 * l_Image[(t_Pos_x)*t_Size_y + (t_Pos_y + 1)] - pp;
+    float Gy = mm + 2 * l_Image[(t_Pos_x)*t_Size_x + (t_Pos_y - 1)] + pm - mp -
+               2 * l_Image[(t_Pos_x)*t_Size_x + (t_Pos_y + 1)] - pp;
 
 
     // edge strength
+
     float strength = sqrt(Gx * Gx + Gy * Gy);
 
     // edget direction
@@ -126,7 +127,7 @@ __kernel void cannyEdge1(
     // save strength globally
     // write_imagef(
     //     h_strength_output, (int2)(get_global_id(0), get_global_id(1)), (float4)(strength, strength, strength, 1.0)); //fix read error
-    h_strength_output[get_global_id(0)*get_global_size(1)+get_global_id(1)] = strength;
+    h_strength_output[get_global_id(1)*get_global_size(0)+get_global_id(0)] = strength;
 
     int a_x, a_y;
 
