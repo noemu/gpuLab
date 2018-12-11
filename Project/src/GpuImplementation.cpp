@@ -111,9 +111,10 @@ void GpuImplementation::execute() {
     // copy to output
     queue.enqueueReadImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
         NULL, &copyToHostEvent);
-    queue.enqueueReadBuffer(full_strength, true, 0, count * sizeof(float), h_outputGpu.data(), NULL, &copyToHostEvent);
+    Core::writeImagePGM("output_CannyEdge.pgm", h_outputGpu, imageWidth, imageHeight);
 
-    Core::writeImagePGM("output_sobel_cpu.pgm", h_outputGpu, imageWidth, imageHeight);
+    queue.enqueueReadBuffer(full_strength, true, 0, count * sizeof(float), h_outputGpu.data(), NULL, &copyToHostEvent);
+    Core::writeImagePGM("output_Gradient.pgm", h_outputGpu, imageWidth, imageHeight);
 }
 
 void GpuImplementation::printTimeMeasurement() {
@@ -139,21 +140,18 @@ void GpuImplementation::printTimeMeasurement() {
 
 void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
 
-    // random init, for testing
-    imageWidth = 640;
-    imageHeight = 480;
-
-	wgSizeX = 10;
-    wgSizeY = 10;
-
-
-    int count = imageWidth * imageHeight;
-    std::vector<float> h_input(count);
-
     // for (int i = 0; i < count; i++) h_input[i] = (rand() % 100) / 5.0f - 10.0f;
     std::vector<float> inputData;
     std::size_t inputWidth, inputHeight;
-    Core::readImagePGM("Valve.pgm", inputData, inputWidth, inputHeight);
+    Core::readImagePGM("Unbenannt.pgm", inputData, inputWidth, inputHeight);
+
+
+	imageWidth = inputWidth- (inputWidth % wgSizeX);
+    imageHeight = inputHeight - (inputHeight % wgSizeY);
+
+	int count = imageWidth * imageHeight;
+    std::vector<float> h_input(count);
+
     for (size_t j = 0; j < imageHeight; j++) {
         for (size_t i = 0; i < imageWidth; i++) {
             h_input[i + imageWidth * j] = inputData[(i % inputWidth) + inputWidth * (j % inputHeight)];

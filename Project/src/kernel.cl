@@ -115,11 +115,11 @@ __kernel void cannyEdge1(
     // edge strength
 
     float strength = sqrt(Gx * Gx + Gy * Gy);
-    strength = strength;
 
     // edget direction
     float alpha = atan2(Gy, Gx);
     alpha = fabs(alpha);
+
 
     // save strength localy
     __local float l_Strength[(WG_SIZE_X) * (WG_SIZE_Y)];
@@ -134,7 +134,7 @@ __kernel void cannyEdge1(
 
     int a_x, a_y;
 
-    if (alpha >= M_PI / 8.0 && alpha < 3.0 * M_PI / 4.0) {
+    if (alpha >= M_PI / 8.0 && alpha < 3.0 * M_PI / 8.0) {
         // tr(top right) or bl(bottom left
         a_x = 1;
         a_y = 1;
@@ -157,12 +157,14 @@ __kernel void cannyEdge1(
         }
     }
 
+
+
     // Non Maximum Suppression
     float strengthA = getStrengthValue(l_Strength, h_strength_output, l_Pos_x + a_x, l_Pos_y + a_y);
     float strengthB = getStrengthValue(l_Strength, h_strength_output, l_Pos_x - a_x, l_Pos_y - a_y);
 
 
-    if (strength < strengthA || strength < strengthB) { // if not the maximum Value
+    if (strength < strengthA || strength <= strengthB) { // if not the maximum Value
         write_imagef(h_output, (int2){get_global_id(0), get_global_id(1)}, (float4){0, 0, 0, 1});
     } else {
         write_imagef(h_output, (int2){get_global_id(0), get_global_id(1)}, (float4){strength, strength, strength, 1});
