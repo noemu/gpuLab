@@ -111,7 +111,7 @@ void GpuImplementation::execute() {
     // copy to output
     queue.enqueueReadImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
         NULL, &copyToHostEvent);
-    //queue.enqueueReadBuffer(full_strength, true, 0, count * sizeof(float), h_outputGpu.data(), NULL, &copyToHostEvent);
+    queue.enqueueReadBuffer(full_strength, true, 0, count * sizeof(float), h_outputGpu.data(), NULL, &copyToHostEvent);
 
     Core::writeImagePGM("output_sobel_cpu.pgm", h_outputGpu, imageWidth, imageHeight);
 }
@@ -142,6 +142,10 @@ void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
     // random init, for testing
     imageWidth = 640;
     imageHeight = 480;
+
+	wgSizeX = 10;
+    wgSizeY = 10;
+
 
     int count = imageWidth * imageHeight;
     std::vector<float> h_input(count);
