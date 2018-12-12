@@ -165,7 +165,7 @@ void nonMaximumSuppressor(__local float* l_Strength, __write_only image2d_t h_ou
     float strengthB = l_Strength[(t_Pos_x - a_x) + (WG_SIZE_X + 2) * (t_Pos_y - a_y)];
 
 
-    if (strength >= strengthA && strength >= strengthB) { // if not the maximum Value
+    if (strength > strengthA && strength > strengthB) { // if not the maximum Value
         // strength = 1.0;
     } else {
         strength = 0;
@@ -220,5 +220,71 @@ __kernel void nonMaximumSuppression(
     if ((alpha > 5.0 * pi_8 && alpha < 7.0 * pi_8) || (alpha > -3.0 * pi_8 && alpha < -1.0 * pi_8)) {
         // tl or br
         nonMaximumSuppressor(l_Strength, h_output, strength, t_Pos_x, t_Pos_y, -1, 1);
+    }
+}
+
+void followEdge(
+    int2 lastDirection, int2 pos, __read_only image2d_t h_input, __write_only image2d_t h_output, float T1, float T2) {
+    bool finished = false;
+    int2 directions[8] = {(int2)(0, 1), (int2)(1, 0), (int2)(0, -1), (int2)(-1, 0), (int2)(1, 1), (int2)(-1, -1),
+        (int2)(-1, 1), (int2)(1, -1)};
+
+    // while (!finished) {
+
+    for (int i = 0; i < get_global_size(0) + get_global_size(1); i++) { //exit criteria if an endless loop appears
+        bool newValueFound = false;
+
+        for (int dirIndex = 0; dirIndex < 8; dirIndex++) {
+            int2 direction = directions[dirIndex];
+            if (direction.x == -lastDirection.x && direction.y == -lastDirection.y) continue; // don't go backwards
+
+            int2 newPos = pos + direction;
+
+            if (newPos.x < 0 || newPos.x >= get_global_size(0) || newPos.y < 0 ||
+                newPos.y >= get_global_size(1)) // skip out of bound Values
+                continue;
+
+            float nextValue = getValueGlobal(h_input, newPos.x, newPos.y);
+
+
+            if (nextValue > T2) continue; // skip values that are computed by other Threads
+
+            if (nextValue > T1) {
+                lastDirection = direction;
+                pos = newPos;
+                newValueFound = true;
+                write_imagef(h_output, newPos, (float4)(0.5, 0.5, 0.5, 1));
+                break;
+            }
+        }
+
+        if (!newValueFound) {
+            finished = true;
+            break;
+        };
+    }
+    if (!finished) write_imagef(h_output, pos, (float4)(1, 1, 1, 1));
+}
+
+
+__kernel void hysterese(__read_only image2d_t h_input, __write_only image2d_t h_output, float T1, float T2) {
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+
+    int2 pos = (int2)(x, y);
+
+    float value = getValueGlobal(h_input, x, y);
+
+
+    if (value > T2) {
+        write_imagef(h_output, pos, (float4)(.5, .5, .5, 1));
+
+        int2 directions[8] = {(int2)(0, 1), (int2)(1, 0), (int2)(0, -1), (int2)(-1, 0), (int2)(1, 1), (int2)(-1, -1),
+            (int2)(-1, 1), (int2)(1, -1)};
+
+        for (int dirIndex = 0; dirIndex < 8; dirIndex++) {
+            int2 direction = directions[dirIndex];
+            followEdge(direction, pos, h_input, h_output, T1, T2);
+        }
     }
 }

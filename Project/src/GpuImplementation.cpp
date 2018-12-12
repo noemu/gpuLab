@@ -81,6 +81,7 @@ GpuImplementation::GpuImplementation(int deviceNr) {
     sobel_Kernel = cl::Kernel(program, "sobel1");
     gaussC_kernel = cl::Kernel(program, "gaussConvolution");
     nonMaxUp_Kernel = cl::Kernel(program, "nonMaximumSuppression");
+    hysterese_kernel = cl::Kernel(program, "hysterese");
 }
 
 /**
@@ -114,6 +115,7 @@ void GpuImplementation::execute() {
     cl::Image2D direction(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
     cl::Image2D maximised_strength(
         context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+    cl::Image2D canny_Edge(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
 
 
     //
@@ -166,6 +168,23 @@ void GpuImplementation::execute() {
     queue.enqueueReadImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
         NULL, &copyToHostEvent);
     Core::writeImagePGM("output_NonMaxSup.pgm", h_outputGpu, imageWidth, imageHeight);
+
+    //
+    // Hysterese Kernel
+    //
+
+    hysterese_kernel.setArg<cl::Image2D>(0, maximised_strength);
+    hysterese_kernel.setArg<cl::Image2D>(1, canny_Edge);
+    hysterese_kernel.setArg<float>(2, 0.002);
+    hysterese_kernel.setArg<float>(3, 0.4);
+
+    queue.enqueueNDRangeKernel(hysterese_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+
+    // copy output to image
+    queue.enqueueReadImage(
+        canny_Edge, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(), NULL, &copyToHostEvent);
+    Core::writeImagePGM("output_CannyEdge.pgm", h_outputGpu, imageWidth, imageHeight);
 }
 
 void GpuImplementation::printTimeMeasurement() {
@@ -194,7 +213,7 @@ void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
     // for (int i = 0; i < count; i++) h_input[i] = (rand() % 100) / 5.0f - 10.0f;
     std::vector<float> inputData;
     std::size_t inputWidth, inputHeight;
-    Core::readImagePGM("test.pgm", inputData, inputWidth, inputHeight);
+    Core::readImagePGM("lena.pgm", inputData, inputWidth, inputHeight);
 
 
     imageWidth = inputWidth - (inputWidth % wgSizeX);

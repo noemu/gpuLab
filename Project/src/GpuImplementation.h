@@ -19,6 +19,7 @@ private:
     cl::Kernel nonMaxUp_Kernel;
     cl::Kernel sobel_Kernel;
     cl::Kernel gaussC_kernel;
+    cl::Kernel hysterese_kernel;
 
     cl::Event copyToClientEvent;
     cl::Event executionEvent;
