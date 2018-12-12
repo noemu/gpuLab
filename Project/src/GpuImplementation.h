@@ -16,7 +16,8 @@ private:
     cl::Program program;
     cl::Context context;
 
-    cl::Kernel cannyE_kernel;
+    cl::Kernel nonMaxUp_Kernel;
+    cl::Kernel sobel_Kernel;
     cl::Kernel gaussC_kernel;
 
     cl::Event copyToClientEvent;
@@ -26,8 +27,8 @@ private:
     std::size_t imageWidth, imageHeight;
     cl::Image2D image;
 
-	std::size_t wgSizeX = 10; // ToDo no Hard coded Work Group Size
-	std::size_t wgSizeY = 10;
+    std::size_t wgSizeX = 10; // ToDo no Hard coded Work Group Size
+    std::size_t wgSizeY = 10;
 
 public:
     GpuImplementation(int deviceNr = 1);

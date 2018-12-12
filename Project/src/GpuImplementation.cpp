@@ -67,18 +67,31 @@ cl::Program GpuImplementation::buildKernel(cl::Context context, int deviceNr) {
     return program;
 }
 
+/**
+    constructor
+
+    @param deviceNr. The number of the device to be used
+*/
 GpuImplementation::GpuImplementation(int deviceNr) {
     context = createContext();
 
     program = buildKernel(context, deviceNr); // if no start argument is given, use first device
 
     // Create a kernel
-    cannyE_kernel = cl::Kernel(program, "cannyEdge1");
+    sobel_Kernel = cl::Kernel(program, "sobel1");
     gaussC_kernel = cl::Kernel(program, "gaussConvolution");
+    nonMaxUp_Kernel = cl::Kernel(program, "nonMaximumSuppression");
 }
 
+/**
+    destructor
+*/
 GpuImplementation::~GpuImplementation() {}
 
+
+/**
+    executes the Kernel
+*/
 void GpuImplementation::execute() {
 
     int count = imageWidth * imageHeight;
@@ -97,36 +110,62 @@ void GpuImplementation::execute() {
 
     // cl::Image2D full_strength(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
     // //fix read_imagef from read_write
-    cl::Buffer full_strength(context, CL_MEM_READ_WRITE, count * sizeof(float));
+    cl::Image2D strength(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+    cl::Image2D direction(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
     cl::Image2D maximised_strength(
-        context, CL_MEM_WRITE_ONLY, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+        context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
 
-	gaussC_kernel.setArg<cl::Image2D>(0, image);
+
+    //
+    // Gauss Smoothing Kernel
+    //
+    gaussC_kernel.setArg<cl::Image2D>(0, image);
     gaussC_kernel.setArg<cl::Image2D>(1, image);
 
-    queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+
+    int countSmoothnessRuns = 4;
+    for (int count = 0; count < countSmoothnessRuns; count++) {
+        queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+            cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+    }
+
+    // copy output to image
+    queue.enqueueReadImage(
+        image, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(), NULL, &copyToHostEvent);
+    Core::writeImagePGM("output_GaussSmoothed.pgm", h_outputGpu, imageWidth, imageHeight);
+
+
+    //
+    // Sobel Gradient Kernel
+    //
+
+    sobel_Kernel.setArg<cl::Image2D>(0, image);
+    sobel_Kernel.setArg<cl::Image2D>(1, strength);
+    sobel_Kernel.setArg<cl::Image2D>(2, direction);
+
+    queue.enqueueNDRangeKernel(sobel_Kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
         cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
-    queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+
+    // copy output to image
+    queue.enqueueReadImage(
+        strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(), NULL, &copyToHostEvent);
+    Core::writeImagePGM("output_Gradient.pgm", h_outputGpu, imageWidth, imageHeight);
+
+    //
+    // Non Maximum Suppression
+    //
+
+    nonMaxUp_Kernel.setArg<cl::Image2D>(0, strength);
+    nonMaxUp_Kernel.setArg<cl::Image2D>(1, direction);
+    nonMaxUp_Kernel.setArg<cl::Image2D>(2, maximised_strength);
+
+    queue.enqueueNDRangeKernel(nonMaxUp_Kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
         cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
-    queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
-        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
 
-    cannyE_kernel.setArg<cl::Image2D>(0, image);
-    cannyE_kernel.setArg<cl::Image2D>(1, maximised_strength);
-    cannyE_kernel.setArg<cl::Buffer>(2, full_strength);
-
-    queue.enqueueNDRangeKernel(cannyE_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
-        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
-
-
-
-    // copy to output
+    // copy output to image
     queue.enqueueReadImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
         NULL, &copyToHostEvent);
-    Core::writeImagePGM("output_CannyEdge.pgm", h_outputGpu, imageWidth, imageHeight);
-
-    queue.enqueueReadBuffer(full_strength, true, 0, count * sizeof(float), h_outputGpu.data(), NULL, &copyToHostEvent);
-    Core::writeImagePGM("output_Gradient.pgm", h_outputGpu, imageWidth, imageHeight);
+    Core::writeImagePGM("output_NonMaxSup.pgm", h_outputGpu, imageWidth, imageHeight);
 }
 
 void GpuImplementation::printTimeMeasurement() {
@@ -155,13 +194,13 @@ void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
     // for (int i = 0; i < count; i++) h_input[i] = (rand() % 100) / 5.0f - 10.0f;
     std::vector<float> inputData;
     std::size_t inputWidth, inputHeight;
-    Core::readImagePGM("lena.pgm", inputData, inputWidth, inputHeight);
+    Core::readImagePGM("test.pgm", inputData, inputWidth, inputHeight);
 
 
-	imageWidth = inputWidth- (inputWidth % wgSizeX);
+    imageWidth = inputWidth - (inputWidth % wgSizeX);
     imageHeight = inputHeight - (inputHeight % wgSizeY);
 
-	int count = imageWidth * imageHeight;
+    int count = imageWidth * imageHeight;
     std::vector<float> h_input(count);
 
     for (size_t j = 0; j < imageHeight; j++) {
