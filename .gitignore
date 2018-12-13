@@ -1,2 +1,6 @@
 OpenCLExercise1_Basics/build/
 Project/build/
+Project/output_NonMaxSup.pgm
+Project/output_Gradient.pgm
+Project/output_GaussSmoothed.pgm
+Project/output_CannyEdge.pgm
