@@ -35,8 +35,8 @@
 int main(int argc, char** argv) {
     GpuImplementation gpuImplementation(
         argc < 2 ? 1 : atoi(argv[1])); // if no start argument is given, use first device
-    gpuImplementation.loadImage("street.pgm");
-    gpuImplementation.execute(0.002,0.15);
+    gpuImplementation.loadImage("lena.pgm");
+    gpuImplementation.execute(0.0,0.9);
     gpuImplementation.printTimeMeasurement();
 
     return 0;

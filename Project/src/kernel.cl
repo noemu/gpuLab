@@ -224,7 +224,7 @@ __kernel void nonMaximumSuppression(
 }
 
 void followEdge(
-    int2 lastDirection, int2 pos, __read_only image2d_t h_input, __write_only image2d_t h_output, float T1, float T2) {
+    int2 lastDirection, int2 pos, __read_only image2d_t h_input, __global float* h_output, float T1, float T2) {
     bool finished = false;
     int2 directions[8] = {(int2)(0, 1), (int2)(1, 0), (int2)(0, -1), (int2)(-1, 0), (int2)(1, 1), (int2)(-1, -1),
         (int2)(-1, 1), (int2)(1, -1)};
@@ -244,6 +244,9 @@ void followEdge(
                 newPos.y >= get_global_size(1)) // skip out of bound Values
                 continue;
 
+			if (h_output[newPos.x + get_global_size(0) * newPos.y] != 0) continue; //skip already written edges. slow global memory access
+               
+
             float nextValue = getValueGlobal(h_input, newPos.x, newPos.y);
 
 
@@ -253,7 +256,7 @@ void followEdge(
                 lastDirection = direction;
                 pos = newPos;
                 newValueFound = true;
-                write_imagef(h_output, newPos, (float4)(0.5, 0.5, 0.5, 1));
+                h_output[newPos.x + get_global_size(0) * newPos.y] = .5;
                 break;
             }
         }
@@ -263,11 +266,11 @@ void followEdge(
             break;
         };
     }
-    if (!finished) write_imagef(h_output, pos, (float4)(1, 1, 1, 1));
+    if (!finished) h_output[pos.x + get_global_size(0) * pos.y] = 1;
 }
 
 
-__kernel void hysterese(__read_only image2d_t h_input, __write_only image2d_t h_output, float T1, float T2) {
+__kernel void hysterese(__read_only image2d_t h_input, __global float* h_output, float T1, float T2) {
     int x = get_global_id(0);
     int y = get_global_id(1);
 
@@ -277,7 +280,7 @@ __kernel void hysterese(__read_only image2d_t h_input, __write_only image2d_t h_
 
 
     if (value > T2) {
-        write_imagef(h_output, pos, (float4)(.5, .5, .5, 1));
+        h_output[pos.x+get_global_size(0)*pos.y] =.5;
 
         int2 directions[8] = {(int2)(0, 1), (int2)(1, 0), (int2)(0, -1), (int2)(-1, 0), (int2)(1, 1), (int2)(-1, -1),
             (int2)(-1, 1), (int2)(1, -1)};

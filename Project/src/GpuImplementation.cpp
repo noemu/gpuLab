@@ -116,8 +116,7 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
     cl::Image2D direction(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
     cl::Image2D maximised_strength(
         context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
-    cl::Image2D canny_Edge(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
-
+    cl::Buffer canny_Edge(context, CL_MEM_READ_WRITE, sizeof(float) * count);
 
     //
     // Gauss Smoothing Kernel
@@ -175,7 +174,7 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
     //
 
     hysterese_kernel.setArg<cl::Image2D>(0, maximised_strength);
-    hysterese_kernel.setArg<cl::Image2D>(1, canny_Edge);
+    hysterese_kernel.setArg<cl::Buffer>(1, canny_Edge);
     hysterese_kernel.setArg<float>(2, T1);
     hysterese_kernel.setArg<float>(3, T2);
 
@@ -183,8 +182,7 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
         cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
 
     // copy output to image
-    queue.enqueueReadImage(
-        canny_Edge, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(), NULL, &copyToHostEvent);
+    queue.enqueueReadBuffer(canny_Edge, true, 0, count * sizeof(float), h_outputGpu.data(), NULL, &copyToHostEvent);
     Core::writeImagePGM("output_CannyEdge.pgm", h_outputGpu, imageWidth, imageHeight);
 }
 
