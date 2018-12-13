@@ -35,7 +35,7 @@ public:
     GpuImplementation(int deviceNr = 1);
     ~GpuImplementation();
 
-    void execute();
+    void execute(float T1, float T2);
     void printTimeMeasurement();
     void loadImage(const boost::filesystem::path& filename);
 };

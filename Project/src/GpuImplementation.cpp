@@ -93,7 +93,8 @@ GpuImplementation::~GpuImplementation() {}
 /**
     executes the Kernel
 */
-void GpuImplementation::execute() {
+void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
+{
 
     int count = imageWidth * imageHeight;
     std::vector<float> h_outputGpu(count);
@@ -125,7 +126,7 @@ void GpuImplementation::execute() {
     gaussC_kernel.setArg<cl::Image2D>(1, image);
 
 
-    int countSmoothnessRuns = 4;
+    int countSmoothnessRuns = 1;
     for (int count = 0; count < countSmoothnessRuns; count++) {
         queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
             cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
@@ -175,8 +176,8 @@ void GpuImplementation::execute() {
 
     hysterese_kernel.setArg<cl::Image2D>(0, maximised_strength);
     hysterese_kernel.setArg<cl::Image2D>(1, canny_Edge);
-    hysterese_kernel.setArg<float>(2, 0.002);
-    hysterese_kernel.setArg<float>(3, 0.4);
+    hysterese_kernel.setArg<float>(2, T1);
+    hysterese_kernel.setArg<float>(3, T2);
 
     queue.enqueueNDRangeKernel(hysterese_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
         cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
@@ -213,7 +214,7 @@ void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
     // for (int i = 0; i < count; i++) h_input[i] = (rand() % 100) / 5.0f - 10.0f;
     std::vector<float> inputData;
     std::size_t inputWidth, inputHeight;
-    Core::readImagePGM("lena.pgm", inputData, inputWidth, inputHeight);
+    Core::readImagePGM(filename, inputData, inputWidth, inputHeight);
 
 
     imageWidth = inputWidth - (inputWidth % wgSizeX);
