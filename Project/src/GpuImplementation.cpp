@@ -93,11 +93,10 @@ GpuImplementation::~GpuImplementation() {}
 /**
     executes the Kernel
 */
-void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
-{
+void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 
     int count = imageWidth * imageHeight;
-    std::vector<float> h_outputGpu(count);
+    h_outputGpu = std::vector<float>(count);
     cl::size_t<3> origin;
     origin[0] = origin[1] = origin[2] = 0;
     cl::size_t<3> region;
