@@ -4,3 +4,5 @@ Project/output_NonMaxSup.pgm
 Project/output_Gradient.pgm
 Project/output_GaussSmoothed.pgm
 Project/output_CannyEdge.pgm
+OpenCLExercise5_VolumeRendering/build/ALL_BUILD.vcxproj
+OpenCLExercise5_VolumeRendering/build/
