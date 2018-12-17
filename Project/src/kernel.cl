@@ -1,7 +1,7 @@
 #ifndef __OPENCL_VERSION__
 #    include <OpenCL/OpenCLKernel.hpp> // Hack to make syntax highlighting in Eclipse work (in vs go to Tools->Options->File Extensions and add 'cl' as 'C++ Microsoft Visual C++')
 #else
-__attribute__((reqd_work_group_size(WG_SIZE_X, WG_SIZE_Y, 0)))
+//__attribute__((reqd_work_group_size(WG_SIZE_X, WG_SIZE_Y, 1)))
 #endif
 
 
