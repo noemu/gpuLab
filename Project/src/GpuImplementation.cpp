@@ -118,6 +118,12 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
         context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
     cl::Buffer canny_Edge(context, CL_MEM_READ_WRITE, sizeof(float) * count);
 
+
+    //copy 0 values to GPU_BUFFER
+	memset(h_outputGpu.data(), 0, count*sizeof(float));
+	queue.enqueueWriteBuffer(canny_Edge, true, 0, count*sizeof(float), h_outputGpu.data());
+
+
     //
     // Gauss Smoothing Kernel
     //
@@ -125,7 +131,7 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
     gaussC_kernel.setArg<cl::Image2D>(1, image);
 
 
-    int countSmoothnessRuns = 1;
+    int countSmoothnessRuns = 10;
     for (int count = 0; count < countSmoothnessRuns; count++) {
         queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
             cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
