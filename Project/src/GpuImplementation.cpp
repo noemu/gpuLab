@@ -104,7 +104,6 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
     region[0] = imageWidth;
     region[1] = imageHeight;
     region[2] = 1;
-    region[2] = 1;
 
     ASSERT(imageHeight % wgSizeY == 0); // imagageWidth/height should be dividable by wgSize
     ASSERT(imageWidth % wgSizeX == 0);
@@ -122,6 +121,8 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
     //copy 0 values to GPU_BUFFER
 	memset(h_outputGpu.data(), 0, count*sizeof(float));
 	queue.enqueueWriteBuffer(canny_Edge, true, 0, count*sizeof(float), h_outputGpu.data());
+    queue.enqueueWriteImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
+        NULL, &copyToClientEvent);
 
 
     //
