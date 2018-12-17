@@ -38,7 +38,7 @@
 int main(int argc, char** argv) {
     GpuImplementation* gpuImplementation =
         new GpuImplementation(argc < 2 ? 1 : atoi(argv[1])); // if no start argument is given, use first device
-    gpuImplementation->loadImage("lena.pgm");
+    gpuImplementation->loadImage(argc < 3 ? "lena.pgm" : argv[2]);
     gpuImplementation->execute(0.0, 0.9);
     gpuImplementation->printTimeMeasurement();
 
