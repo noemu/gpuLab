@@ -18,4 +18,5 @@ public:
     void execute(float T1, float T2);
     void printTimeMeasurement();
     void loadImage(const boost::filesystem::path& filename);
+	void copyImageToLocal(image2d_t h_Image, float* l_Buffer)
 };

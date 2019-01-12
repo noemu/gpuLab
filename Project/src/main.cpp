@@ -3,7 +3,7 @@
         main.cpp
         Create and execute the GPU-Kernel.
 
-        //TODO Surnames @author Ellen ..., Marvin ..., Phong ..., Rafael Jarosch
+        //TODO Surnames @author Ellen ..., Marvin Knodel 3229587, Phong ..., Rafael Jarosch
 */
 
 /**#include <stdio.h>
