@@ -1,10 +1,14 @@
 #include "CPUImplementation.h"
+
+#include <Core/Time.hpp>
 #include <Core/Assert.hpp>
 #include <Core/Image.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 /**
  constructor
@@ -28,9 +32,9 @@ CPUImplementation::~CPUImplementation() {
 void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 
 	int count = imageWidth * imageHeight;
-	std::size_t<3> origin;
+	std::vector<size_t> origin(3);
 	origin[0] = origin[1] = origin[2] = 0;
-	std::size_t<3> region;
+	std::vector<size_t> region (3);
 	region[0] = imageWidth;
 	region[1] = imageHeight;
 	region[2] = 1;
@@ -45,24 +49,6 @@ void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 
 	memset(h_input.data(), 255, size);
 	memset(h_outputCpu.data(), 255, size);
-
-		//////// Load input data ////////////////////////////////
-		// Use random input data
-		/*
-		for (int i = 0; i < count; i++)
-			h_input[i] = (rand() % 100) / 5.0f - 10.0f;
-		*/
-		// Use an image (Valve.pgm) as input data
-		{
-			std::vector<float> inputData;
-			std::size_t inputWidth, inputHeight;
-			Core::readImagePGM("Valve.pgm", inputData, inputWidth, inputHeight);
-			for (size_t j = 0; j < countY; j++) {
-				for (size_t i = 0; i < countX; i++) {
-					h_input[i + countX * j] = inputData[(i % inputWidth) + inputWidth * (j % inputHeight)];
-				}
-			}
-		}
 
 	//
 	// Gauss calculation (schleife 10 durchläufe)
@@ -97,8 +83,8 @@ void CPUImplementation::printTimeMeasurement(Core::TimeSpan cpuExecutionTime) {
 	const int generalColumnWidth = 19;
 
 	outputString << std::left << std::setw(firstColumnWidth)
-			<< "GPU-Performance" << std::setw(generalColumnWidth)
-			<< "copy to client" << std::setw(generalColumnWidth)
+			//<< "GPU-Performance" << std::setw(generalColumnWidth)
+			//<< "copy to client" << std::setw(generalColumnWidth)
 			<< "copy to host" << std::setw(generalColumnWidth) << "execution"
 			<< std::endl;
 	outputString << std::left << std::setw(firstColumnWidth) << ""
@@ -113,8 +99,8 @@ void CPUImplementation::printTimeMeasurement(Core::TimeSpan cpuExecutionTime) {
 void CPUImplementation::loadImage(const boost::filesystem::path& filename) {
 
 	// for (int i = 0; i < count; i++) h_input[i] = (rand() % 100) / 5.0f - 10.0f;
-	std::vector<float> inputData;
 	std::size_t inputWidth, inputHeight;
+	std::vector<float> inputData;
 	Core::readImagePGM(filename, inputData, inputWidth, inputHeight);
 
 	imageWidth = inputWidth - (inputWidth % wgSizeX);
@@ -131,25 +117,32 @@ void CPUImplementation::loadImage(const boost::filesystem::path& filename) {
 	}
 
 	// copyToClient
-	cl::size_t<3> origin;
-	origin[0] = origin[1] = origin[2] = 0;
-	cl::size_t<3> region;
-	region[0] = imageWidth;
-	region[1] = imageHeight;
-	region[2] = 1;
+	//std::vector<size_t> origin(3);
+	//origin[0] = origin[1] = origin[2] = 0;
+	//std::vector<size_t> region(3);
+	//region[0] = imageWidth;
+	//region[1] = imageHeight;
+	//region[2] = 1;
 
-	image = cl::Image2D(context, CL_MEM_READ_WRITE,
-			cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+	////just to reference it to explain it in the group taken from sobel exercise
+	//std::size_t countX = wgSizeX * 400;
+	//std::size_t countY = wgSizeY * 300;
+	//Core::readImagePGM(filename, inputData, inputWidth, inputHeight);
+	//for (size_t j = 0; j < countY; j++) {
+	//	for (size_t i = 0; i < countX; i++) {
+	//		h_input[i + countX * j] = inputData[(i % inputWidth) + inputWidth * (j % inputHeight)];
+	//	}
+	//}
 }
 
-float getValueGlobal(image2d_t image, int i, int j) {
+float getValueGlobal(std::vector<float> image, int i, int j) {
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP
 			| CLK_FILTER_NEAREST;
 	return read_imagef(image, sampler, (int2 ) { i, j }).x;
 }
 
-void CPUImplementation::gaussConvolution(image2d_t h_input,
-		image2d_t h_output) {
+void CPUImplementation::gaussConvolution(std::vector<float> h_input,
+	std::vector<float> h_output) {
 	float l_Image[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add also values above/lower/left/right from work group
 
 	int l_Pos_x = get_local_id(0); // local Positins
@@ -192,8 +185,8 @@ void CPUImplementation::gaussConvolution(image2d_t h_input,
 /**
  canny Edge Kernel with a local Buffer, that also copy the values around the workgroup Buffer
  */
-void CPUImplementation::sobel1(image2d_t h_input, image2d_t h_output_Strength,
-		image2d_t h_output_Direction) {
+void CPUImplementation::sobel1(std::vector<float> h_input, std::vector<float> h_output_Strength,
+	std::vector<float> h_output_Direction) {
 	// copy to local memory
 
 	float l_Image[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add all values and values above/lower/left/right from work group
@@ -236,7 +229,7 @@ void CPUImplementation::sobel1(image2d_t h_input, image2d_t h_output_Strength,
 }
 
 void CPUImplementation::nonMaximumSuppressor(float* l_Strength,
-		image2d_t h_output, float strength, int t_Pos_x, int t_Pos_y, int a_x,
+	std::vector<float> h_output, float strength, int t_Pos_x, int t_Pos_y, int a_x,
 		int a_y) {
 
 	// Non Maximum Suppression
@@ -258,8 +251,8 @@ void CPUImplementation::nonMaximumSuppressor(float* l_Strength,
 /**
  canny Edge Kernel with a local Buffer, that overlaps with the neighbour Buffer
  */
-void CPUImplementation::nonMaximumSuppression(image2d_t h_input_Strength,
-		image2d_t h_input_Direction, image2d_t h_output) {
+void CPUImplementation::nonMaximumSuppression(std::vector<float> h_input_Strength,
+	std::vector<float> h_input_Direction, std::vector<float> h_output) {
 	float l_Strength[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add all values and values above/lower/left/right from work group
 
 	// copy Values to local Buffer
@@ -310,7 +303,7 @@ void CPUImplementation::nonMaximumSuppression(image2d_t h_input_Strength,
 }
 
 void CPUImplementation::followEdge(int2 lastDirection, int2 pos,
-		image2d_t h_input, float* h_output, float T1, float T2) {
+	std::vector<float> h_input, float* h_output, float T1, float T2) {
 	bool finished = false;
 	int2 directions[8] = { (int2) (0, 1), (int2) (1, 0), (int2) (0, -1),
 			(int2) (-1, 0), (int2) (1, 1), (int2) (-1, -1), (int2) (-1, 1),
@@ -359,7 +352,7 @@ void CPUImplementation::followEdge(int2 lastDirection, int2 pos,
 		h_output[pos.x + get_global_size(0) * pos.y] = 1;
 }
 
-void CPUImplementation::hysterese(image2d_t h_input, float* h_output, float T1,
+void CPUImplementation::hysterese(std::vector<float> h_input, float* h_output, float T1,
 		float T2) {
 	int x = get_global_id(0);
 	int y = get_global_id(1);
