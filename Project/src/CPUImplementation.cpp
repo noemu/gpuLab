@@ -3,7 +3,6 @@
 #include <Core/Time.hpp>
 #include <Core/Assert.hpp>
 #include <Core/Image.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -46,6 +45,7 @@ void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 	// Allocate space for output data from CPU
 	std::vector<float> h_input (count);
 	std::vector<float> h_outputCpu (count);
+	std::vector<float> h_direction(count);
 
 	memset(h_input.data(), 255, size);
 	memset(h_outputCpu.data(), 255, size);
@@ -53,14 +53,19 @@ void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 	//
 	// Gauss calculation (schleife 10 durchläufe)
 	//
+	for (int i = 0; i < 10; i++) {
+		gaussConvolution(h_input, h_outputCpu);
+	}
 
 	//
 	// Sobel calculation
 	//
+	sobelHost(h_input, h_outputCpu, wgSizeX * 400, wgSizeY * 400);
 
 	//
 	// Non Maximum Suppression
 	//
+	nonMaximumSuppression(h_input, h_direction, h_outputCpu);
 
 	Core::writeImagePGM("output_NonMaxSup_CPU.pgm", h_outputCpu, imageWidth,
 			imageHeight);
@@ -70,6 +75,33 @@ void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 	//
 	Core::writeImagePGM("output_CannyEdge_CPU.pgm", h_outputCpu, imageWidth,
 			imageHeight);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Sobel implementation
+//////////////////////////////////////////////////////////////////////////////
+int CPUImplementation::getIndexGlobal(std::size_t countX, int i, int j) {
+	return j * countX + i;
+}
+
+// Read value from global array a, return 0 if outside image
+float CPUImplementation::getValueGlobal(const std::vector<float>& a, std::size_t countX, std::size_t countY, int i, int j) {
+	if (i < 0 || (size_t)i >= countX || j < 0 || (size_t)j >= countY)
+		return 0;
+	else
+		return a[getIndexGlobal(countX, i, j)];
+}
+
+void CPUImplementation::sobelHost(const std::vector<float>& h_input, std::vector<float>& h_outputCpu, std::size_t countX, std::size_t countY) {
+	for (int i = 0; i < (int)countX; i++) {
+		for (int j = 0; j < (int)countY; j++) {
+			float Gx = getValueGlobal(h_input, countX, countY, i - 1, j - 1) + 2 * getValueGlobal(h_input, countX, countY, i - 1, j) + getValueGlobal(h_input, countX, countY, i - 1, j + 1)
+				- getValueGlobal(h_input, countX, countY, i + 1, j - 1) - 2 * getValueGlobal(h_input, countX, countY, i + 1, j) - getValueGlobal(h_input, countX, countY, i + 1, j + 1);
+			float Gy = getValueGlobal(h_input, countX, countY, i - 1, j - 1) + 2 * getValueGlobal(h_input, countX, countY, i, j - 1) + getValueGlobal(h_input, countX, countY, i + 1, j - 1)
+				- getValueGlobal(h_input, countX, countY, i - 1, j + 1) - 2 * getValueGlobal(h_input, countX, countY, i, j + 1) - getValueGlobal(h_input, countX, countY, i + 1, j + 1);
+			h_outputCpu[getIndexGlobal(countX, i, j)] = sqrt(Gx * Gx + Gy * Gy);
+		}
+	}
 }
 
 /**
@@ -115,34 +147,11 @@ void CPUImplementation::loadImage(const boost::filesystem::path& filename) {
 					+ inputWidth * (j % inputHeight)];
 		}
 	}
-
-	// copyToClient
-	//std::vector<size_t> origin(3);
-	//origin[0] = origin[1] = origin[2] = 0;
-	//std::vector<size_t> region(3);
-	//region[0] = imageWidth;
-	//region[1] = imageHeight;
-	//region[2] = 1;
-
-	////just to reference it to explain it in the group taken from sobel exercise
-	//std::size_t countX = wgSizeX * 400;
-	//std::size_t countY = wgSizeY * 300;
-	//Core::readImagePGM(filename, inputData, inputWidth, inputHeight);
-	//for (size_t j = 0; j < countY; j++) {
-	//	for (size_t i = 0; i < countX; i++) {
-	//		h_input[i + countX * j] = inputData[(i % inputWidth) + inputWidth * (j % inputHeight)];
-	//	}
-	//}
 }
 
-float getValueGlobal(std::vector<float> image, int i, int j) {
-	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP
-			| CLK_FILTER_NEAREST;
-	return read_imagef(image, sampler, (int2 ) { i, j }).x;
-}
-
-void CPUImplementation::gaussConvolution(std::vector<float> h_input,
-	std::vector<float> h_output) {
+void CPUImplementation::gaussConvolution(std::vector<float> h_input, std::vector<float> h_output) {
+	int const WG_SIZE_X = 10;
+	int const WG_SIZE_Y = 10;
 	float l_Image[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add also values above/lower/left/right from work group
 
 	int l_Pos_x = get_local_id(0); // local Positins
@@ -153,11 +162,9 @@ void CPUImplementation::gaussConvolution(std::vector<float> h_input,
 	int t_Pos_y = l_Pos_y + 1;
 	int t_Size_x = WG_SIZE_X + 2;
 
-	// copy Values to local Buffer
 	//auf rand überprüfen
 	//vergleichen ob man sich am rand befindet (siehe copyToLocal)
 	// bei rändern den wert rüber "kopieren" (nächst inneren wert nehmen)
-	barrier (CLK_LOCAL_MEM_FENCE);
 
 	/*
 	 * calculate the Convolution with a Gauss Kernel
@@ -178,8 +185,8 @@ void CPUImplementation::gaussConvolution(std::vector<float> h_input,
 	float value = 1.0 / 16.0
 			* (mm + mp + pm + pp + 2.0 * (nm + np + mn + mp) + 4.0 * nn);
 
-	write_imagef(h_output, (int2 ) { get_global_id(0), get_global_id(1) },
-			(float4 ) { value, value, value, 1 });
+
+	h_output[getIndexGlobal(countX, i, j)] = sqrt(Gx * Gx + Gy * Gy);
 }
 
 /**
@@ -189,6 +196,9 @@ void CPUImplementation::sobel1(std::vector<float> h_input, std::vector<float> h_
 	std::vector<float> h_output_Direction) {
 	// copy to local memory
 
+
+	int const WG_SIZE_X = 10;
+	int const WG_SIZE_Y = 10;
 	float l_Image[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add all values and values above/lower/left/right from work group
 
 	int l_Pos_x = get_local_id(0); // local Positins
@@ -198,10 +208,6 @@ void CPUImplementation::sobel1(std::vector<float> h_input, std::vector<float> h_
 	int t_Pos_x = l_Pos_x + 1; // positions in local memory Buffer 'l_Image'
 	int t_Pos_y = l_Pos_y + 1;
 	int t_Size_x = WG_SIZE_X + 2;
-
-	// copy Values to local Buffer
-	copyImageToLocal(h_input, l_Image);
-	barrier (CLK_LOCAL_MEM_FENCE);
 
 	// calculate the Gradient with the Sobel Operator
 	float mm = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y - 1)];
@@ -218,13 +224,13 @@ void CPUImplementation::sobel1(std::vector<float> h_input, std::vector<float> h_
 	// edge strength
 	float value = sqrt(Gx * Gx + Gy * Gy);
 	write_imagef(h_output_Strength,
-			(int2 ) { get_global_id(0), get_global_id(1) }, (float4 ) {
+			(int ) { get_global_id(0), get_global_id(1) }, (float4 ) {
 									value, value, value, 1 });
 
 	// edget direction
 	value = atan2(Gy, Gx);
 	write_imagef(h_output_Direction,
-			(int2 ) { get_global_id(0), get_global_id(1) }, (float4 ) {
+			(int ) { get_global_id(0), get_global_id(1) }, (float4 ) {
 									value, value, value, 1 });
 }
 
@@ -232,6 +238,9 @@ void CPUImplementation::nonMaximumSuppressor(float* l_Strength,
 	std::vector<float> h_output, float strength, int t_Pos_x, int t_Pos_y, int a_x,
 		int a_y) {
 
+
+	int const WG_SIZE_X = 10;
+	int const WG_SIZE_Y = 10;
 	// Non Maximum Suppression
 	float strengthA = l_Strength[(t_Pos_x + a_x)
 			+ (WG_SIZE_X + 2) * (t_Pos_y + a_y)];
@@ -244,7 +253,7 @@ void CPUImplementation::nonMaximumSuppressor(float* l_Strength,
 		strength = 0;
 	}
 
-	write_imagef(h_output, (int2 ) { get_global_id(0), get_global_id(1) },
+	write_imagef(h_output, (int ) { get_global_id(0), get_global_id(1) },
 			(float4 ) { strength, strength, strength, 1 });
 }
 
@@ -253,11 +262,10 @@ void CPUImplementation::nonMaximumSuppressor(float* l_Strength,
  */
 void CPUImplementation::nonMaximumSuppression(std::vector<float> h_input_Strength,
 	std::vector<float> h_input_Direction, std::vector<float> h_output) {
-	float l_Strength[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add all values and values above/lower/left/right from work group
 
-	// copy Values to local Buffer
-	copyImageToLocal(h_input_Strength, l_Strength);
-	barrier (CLK_LOCAL_MEM_FENCE);
+	int const WG_SIZE_X = 10;
+	int const WG_SIZE_Y = 10;
+	float l_Strength[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add all values and values above/lower/left/right from work group
 
 	float alpha = getValueGlobal(h_input_Direction, get_global_id(0),
 			get_global_id(1));
@@ -302,12 +310,12 @@ void CPUImplementation::nonMaximumSuppression(std::vector<float> h_input_Strengt
 	}
 }
 
-void CPUImplementation::followEdge(int2 lastDirection, int2 pos,
+void CPUImplementation::followEdge(int lastDirection, int pos,
 	std::vector<float> h_input, float* h_output, float T1, float T2) {
 	bool finished = false;
-	int2 directions[8] = { (int2) (0, 1), (int2) (1, 0), (int2) (0, -1),
-			(int2) (-1, 0), (int2) (1, 1), (int2) (-1, -1), (int2) (-1, 1),
-			(int2) (1, -1) };
+	int directions[8] = { (int) (0, 1), (int) (1, 0), (int) (0, -1),
+			(int) (-1, 0), (int) (1, 1), (int) (-1, -1), (int) (-1, 1),
+			(int) (1, -1) };
 
 	// while (!finished) {
 
@@ -315,12 +323,12 @@ void CPUImplementation::followEdge(int2 lastDirection, int2 pos,
 		bool newValueFound = false;
 
 		for (int dirIndex = 0; dirIndex < 8; dirIndex++) {
-			int2 direction = directions[dirIndex];
+			int direction = directions[dirIndex];
 			if (direction.x == -lastDirection.x
 					&& direction.y == -lastDirection.y)
 				continue; // don't go backwards
 
-			int2 newPos = pos + direction;
+			int newPos = pos + direction;
 
 			if (newPos.x < 0 || newPos.x >= get_global_size(0) || newPos.y < 0
 					|| newPos.y >= get_global_size(1)) // skip out of bound Values
@@ -357,19 +365,19 @@ void CPUImplementation::hysterese(std::vector<float> h_input, float* h_output, f
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 
-	int2 pos = (int2) (x, y);
+	int pos = (int) (x, y);
 
 	float value = getValueGlobal(h_input, x, y);
 
 	if (value > T2) {
 		h_output[pos.x + get_global_size(0) * pos.y] = .5;
 
-		int2 directions[8] = { (int2) (0, 1), (int2) (1, 0), (int2) (0, -1),
-				(int2) (-1, 0), (int2) (1, 1), (int2) (-1, -1), (int2) (-1, 1),
-				(int2) (1, -1) };
+		int directions[8] = { (int) (0, 1), (int) (1, 0), (int) (0, -1),
+				(int) (-1, 0), (int) (1, 1), (int) (-1, -1), (int) (-1, 1),
+				(int) (1, -1) };
 
 		for (int dirIndex = 0; dirIndex < 8; dirIndex++) {
-			int2 direction = directions[dirIndex];
+			int direction = directions[dirIndex];
 			followEdge(direction, pos, h_input, h_output, T1, T2);
 		}
 	}
