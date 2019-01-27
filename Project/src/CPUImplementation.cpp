@@ -73,6 +73,8 @@ void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 	//
 	// Hysterese Kernel
 	//
+	hysterese(h_input, &h_outputCpu, T1, T2);
+
 	Core::writeImagePGM("output_CannyEdge_CPU.pgm", h_outputCpu, imageWidth,
 			imageHeight);
 }
@@ -92,6 +94,9 @@ float CPUImplementation::getValueGlobal(const std::vector<float>& a, std::size_t
 		return a[getIndexGlobal(countX, i, j)];
 }
 
+/**
+*the sobel calculation for the host
+*/
 void CPUImplementation::sobelHost(const std::vector<float>& h_input, std::vector<float>& h_outputCpu, std::size_t countX, std::size_t countY) {
 	for (int i = 0; i < (int)countX; i++) {
 		for (int j = 0; j < (int)countY; j++) {
@@ -150,88 +155,45 @@ void CPUImplementation::loadImage(const boost::filesystem::path& filename) {
 }
 
 void CPUImplementation::gaussConvolution(std::vector<float> h_input, std::vector<float> h_output) {
+	int countX = wgSizeX * 400;
+	int countY = wgSizeY * 400;
 	int const WG_SIZE_X = 10;
 	int const WG_SIZE_Y = 10;
+	int t_Size_x = wgSizeX + 2;
 	float l_Image[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add also values above/lower/left/right from work group
 
-	int l_Pos_x = get_local_id(0); // local Positins
-	int l_Pos_y = get_local_id(1);
-	int l_Pos = l_Pos_x + WG_SIZE_X + l_Pos_y;
+	for (int i = 0; i < (int)countX; i++) {
+		for (int j = 0; j < (int)countY; j++) {
+			float Gx = getValueGlobal(h_input, countX, countY, i - 1, j - 1) + 2 * getValueGlobal(h_input, countX, countY, i - 1, j) + getValueGlobal(h_input, countX, countY, i - 1, j + 1)
+				- getValueGlobal(h_input, countX, countY, i + 1, j - 1) - 2 * getValueGlobal(h_input, countX, countY, i + 1, j) - getValueGlobal(h_input, countX, countY, i + 1, j + 1);
+			float Gy = getValueGlobal(h_input, countX, countY, i - 1, j - 1) + 2 * getValueGlobal(h_input, countX, countY, i, j - 1) + getValueGlobal(h_input, countX, countY, i + 1, j - 1)
+				- getValueGlobal(h_input, countX, countY, i - 1, j + 1) - 2 * getValueGlobal(h_input, countX, countY, i, j + 1) - getValueGlobal(h_input, countX, countY, i + 1, j + 1);
+			/*
+			* calculate the Convolution with a Gauss Kernel
+			* mm = minus minus
+			* mp = minus pluss
+			* mn = minus null etc
+			*/
+			float mm = l_Image[(Gx - 1) + t_Size_x * (Gy - 1)];
+			float mp = l_Image[(Gx - 1) + t_Size_x * (Gy + 1)];
+			float pm = l_Image[(Gx + 1) + t_Size_x * (Gy - 1)];
+			float pp = l_Image[(Gx + 1) + t_Size_x * (Gy + 1)];
+			float mn = l_Image[(Gx - 1) + t_Size_x * (Gy)];
+			float pn = l_Image[(Gx + 1) + t_Size_x * (Gy)];
+			float nm = l_Image[(Gx)+ t_Size_x * (Gy - 1)];
+			float np = l_Image[(Gx)+ t_Size_x * (Gy + 1)];
+			float nn = l_Image[(Gx)+ t_Size_x * (Gy)];
 
-	int t_Pos_x = l_Pos_x + 1; // positions in local memory Buffer 'l_Image'
-	int t_Pos_y = l_Pos_y + 1;
-	int t_Size_x = WG_SIZE_X + 2;
+			float value = 1.0 / 16.0
+				* (mm + mp + pm + pp + 2.0 * (nm + np + mn + mp) + 4.0 * nn);
+			h_output[getIndexGlobal(countX, i, j)] = sqrt(Gx * Gx + Gy * Gy);
+		}
+	}
 
 	//auf rand überprüfen
 	//vergleichen ob man sich am rand befindet (siehe copyToLocal)
 	// bei rändern den wert rüber "kopieren" (nächst inneren wert nehmen)
 
-	/*
-	 * calculate the Convolution with a Gauss Kernel
-	 * mm = minus minus
-	 * mp = minus pluss
-	 * mn = minus null etc
-	 */
-	float mm = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y - 1)];
-	float mp = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y + 1)];
-	float pm = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y - 1)];
-	float pp = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y + 1)];
-	float mn = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y)];
-	float pn = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y)];
-	float nm = l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y - 1)];
-	float np = l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y + 1)];
-	float nn = l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y)];
-
-	float value = 1.0 / 16.0
-			* (mm + mp + pm + pp + 2.0 * (nm + np + mn + mp) + 4.0 * nn);
-
-
-	h_output[getIndexGlobal(countX, i, j)] = sqrt(Gx * Gx + Gy * Gy);
-}
-
-/**
- canny Edge Kernel with a local Buffer, that also copy the values around the workgroup Buffer
- */
-void CPUImplementation::sobel1(std::vector<float> h_input, std::vector<float> h_output_Strength,
-	std::vector<float> h_output_Direction) {
-	// copy to local memory
-
-
-	int const WG_SIZE_X = 10;
-	int const WG_SIZE_Y = 10;
-	float l_Image[(WG_SIZE_X + 2) * (WG_SIZE_Y + 2)]; // add all values and values above/lower/left/right from work group
-
-	int l_Pos_x = get_local_id(0); // local Positins
-	int l_Pos_y = get_local_id(1);
-	int l_Pos = l_Pos_x + WG_SIZE_X + l_Pos_y;
-
-	int t_Pos_x = l_Pos_x + 1; // positions in local memory Buffer 'l_Image'
-	int t_Pos_y = l_Pos_y + 1;
-	int t_Size_x = WG_SIZE_X + 2;
-
-	// calculate the Gradient with the Sobel Operator
-	float mm = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y - 1)];
-	float mp = l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y + 1)];
-	float pm = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y - 1)];
-	float pp = l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y + 1)];
-
-	float Gx = mm + 2.0 * l_Image[(t_Pos_x - 1) + t_Size_x * (t_Pos_y)] + mp
-			- pm - 2.0 * l_Image[(t_Pos_x + 1) + t_Size_x * (t_Pos_y)] - pp;
-
-	float Gy = mm + 2 * l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y - 1)] + pm - mp
-			- 2 * l_Image[(t_Pos_x) + t_Size_x * (t_Pos_y + 1)] - pp;
-
-	// edge strength
-	float value = sqrt(Gx * Gx + Gy * Gy);
-	write_imagef(h_output_Strength,
-			(int ) { get_global_id(0), get_global_id(1) }, (float4 ) {
-									value, value, value, 1 });
-
-	// edget direction
-	value = atan2(Gy, Gx);
-	write_imagef(h_output_Direction,
-			(int ) { get_global_id(0), get_global_id(1) }, (float4 ) {
-									value, value, value, 1 });
 }
 
 void CPUImplementation::nonMaximumSuppressor(float* l_Strength,
@@ -360,8 +322,7 @@ void CPUImplementation::followEdge(int lastDirection, int pos,
 		h_output[pos.x + get_global_size(0) * pos.y] = 1;
 }
 
-void CPUImplementation::hysterese(std::vector<float> h_input, float* h_output, float T1,
-		float T2) {
+void CPUImplementation::hysterese(std::vector<float> h_input, float* h_output, float T1, float T2) {
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 
