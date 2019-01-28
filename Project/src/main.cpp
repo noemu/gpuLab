@@ -41,15 +41,14 @@ int main(int argc, char** argv) {
     gpuImplementation.execute(0.0,0.9);
     gpuImplementation.printTimeMeasurement();
 
-    CPUImplementation cpuImplementation(
-        argc < 2 ? 1 : atoi(argv[1])); // if no start argument is given, use first device
-    cpuImplementation.loadImage(argc < 3 ? "lena.pgm" : argv[2]);
+    CPUImplementation cpuI; // if no start argument is given, use first device
+    cpuI.loadImage(argc < 3 ? "lena.pgm" : argv[2]);
     Core::TimeSpan cpuStart = Core::getCurrentTime();
-    cpuImplementation.execute(0.0,0.9);
+    cpuI.execute(0.0,0.8);
     Core::TimeSpan cpuEnd= Core::getCurrentTime();
 
     Core::TimeSpan cpuExecute = cpuEnd - cpuStart;
-    cpuImplementation.printTimeMeasurement(cpuExecute);
+    cpuI.printTimeMeasurement(cpuExecute);
 
     return 0;
 }
