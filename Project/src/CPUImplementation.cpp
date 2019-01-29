@@ -15,6 +15,7 @@
 CPUImplementation::CPUImplementation() {
 	imageHeight = 0;
 	imageWidth = 0;
+	count = 0;
 }
 
 /**
@@ -54,7 +55,6 @@ void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 	//
 	// Gauss calculation (schleife 10 durchläufe)
 	//
-
 	for (int i = 0; i < 10; i++) {
 		std::vector<float> gaussOut = CPUImplementation::gaussConvolution();
 		h_input = gaussOut;
@@ -64,10 +64,10 @@ void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 
 	//
 	// Sobel calculation
-	// wgSizen raus hauen
+	//
 	sobelHost(h_direction.data(), h_magnitude.data());
 
-	Core::writeImagePGM("output_Sobel_Mag_CPU.pgm", h_magnitude, imageWidth,
+	Core::writeImagePGM("output_Gradient_CPU.pgm", h_magnitude, imageWidth,
 			imageHeight);
 	//
 	// Non Maximum Suppression
@@ -173,30 +173,29 @@ std::vector<float> CPUImplementation::gaussConvolution() {
 	std::vector<float> h_output(count);
 	h_output.reserve(count);
 
-	//Gx durch x ersetzen Gy analog nur hier!
-	for (int Gx = 0; Gx < imageWidth; Gx++) {
-		for (int Gy = 0; Gy < imageHeight; Gy++) {
+	for (int x = 0; x < imageWidth; x++) {
+		for (int y = 0; y < imageHeight; y++) {
 			/*
 			 * calculate the Convolution with a Gauss Kernel
 			 * mm = minus minus
 			 * mp = minus pluss
 			 * mn = minus null etc
 			 */
-			float mm = getValueGlobal(h_input, Gx - 1, Gy - 1);
-			float mp = getValueGlobal(h_input, Gx - 1, Gy + 1);
-			float pm = getValueGlobal(h_input, Gx + 1, Gy - 1);
-			float pp = getValueGlobal(h_input, Gx + 1, Gy + 1);
-			float mn = getValueGlobal(h_input, Gx - 1, Gy);
-			float pn = getValueGlobal(h_input, Gx + 1, Gy);
-			float nm = getValueGlobal(h_input, Gx, Gy - 1);
-			float np = getValueGlobal(h_input, Gx, Gy + 1);
-			float nn = getValueGlobal(h_input, Gx, Gy);
+			float mm = getValueGlobal(h_input, x - 1, y - 1);
+			float mp = getValueGlobal(h_input, x - 1, y + 1);
+			float pm = getValueGlobal(h_input, x + 1, y - 1);
+			float pp = getValueGlobal(h_input, x + 1, y + 1);
+			float mn = getValueGlobal(h_input, x - 1, y);
+			float pn = getValueGlobal(h_input, x + 1, y);
+			float nm = getValueGlobal(h_input, x, y - 1);
+			float np = getValueGlobal(h_input, x, y + 1);
+			float nn = getValueGlobal(h_input, x, y);
 
 			float value =
 					1.0 / 16.0
 							* (mm + mp + pm + pp + 2.0 * (nm + np + mn + mp)
 									+ 4.0 * nn);
-			h_output[Gx + imageWidth * Gy] = value;
+			h_output[x + imageWidth * y] = value;
 		}
 	}
 	return h_output;
