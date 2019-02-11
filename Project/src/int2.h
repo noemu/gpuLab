@@ -10,7 +10,12 @@ public:
 		this->y = y;
 	}
 
-	int2& operator+(const int2& a){
+	const int2 operator+(const int2& a){
+        int2 c(this->x + a.x,this->y + a.y);
+		return c;
+	}
+
+	int2& operator+=(const int2& a){
 		this->x+= a.x;
 		this->y+= a.y;
 
