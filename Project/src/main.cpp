@@ -29,7 +29,7 @@
 #include <Core/Time.hpp>
 #include <Core/Image.hpp>
 
-void compare(std::string cpuImg, std::string gpuImg) {
+void compare(std::string cpuImg, std::string gpuImg, double e) {
 
 	//check if the result image is the same
 	std::size_t inputWidth, inputHeight;
@@ -43,7 +43,7 @@ void compare(std::string cpuImg, std::string gpuImg) {
 			//loop in the y-direction
 			size_t index = i + j * inputWidth;
 			// Allow small differences between CPU and GPU results (due to different rounding behavior)
-			if (!(std::abs(inputDataCPU[index] - inputDataGPU[index]) <= 1e-5)) {
+			if (!(std::abs(inputDataCPU[index] - inputDataGPU[index]) <= e)) {
 				if (errorCount < 10)
 					std::cout << "Result for " << i << "," << j
 							<< " is incorrect: GPU value is "
@@ -58,9 +58,11 @@ void compare(std::string cpuImg, std::string gpuImg) {
 	}
 	if (errorCount != 0) {
 		std::cout << "Found " << errorCount << " differences" << std::endl;
+	}else{
+		std::cout << std::endl;
+		std::cout << "Keine relevanten Unterschiede entdeckt" << std::endl;
 	}
-	std::cout << std::endl;
-	std::cout << "Keine relevanten Unterschiede entdeckt" << std::endl;
+
 }
 
 /**
@@ -70,14 +72,15 @@ void compare(std::string cpuImg, std::string gpuImg) {
         @return Error-Code
 */
 int main(int argc, char** argv) {
+
     GpuImplementation gpuImplementation(
         argc < 2 ? 1 : atoi(argv[1])); // if no start argument is given, use first device
-    gpuImplementation.loadImage(argc < 3 ? "lena.pgm" : argv[2]);
+    gpuImplementation.loadImage(argc < 3 ? "test.pgm" : argv[2]);
     gpuImplementation.execute(0.0,0.7);
     gpuImplementation.printTimeMeasurement();
 
     CPUImplementation cpuI; // if no start argument is given, use first device
-    cpuI.loadImage(argc < 3 ? "lena.pgm" : argv[2]);
+    cpuI.loadImage(argc < 3 ? "test.pgm" : argv[2]);
     Core::TimeSpan cpuStart = Core::getCurrentTime();
     cpuI.execute(0.0,0.7);
     Core::TimeSpan cpuEnd= Core::getCurrentTime();
@@ -85,9 +88,18 @@ int main(int argc, char** argv) {
     Core::TimeSpan cpuExecute = cpuEnd - cpuStart;
     cpuI.printTimeMeasurement(cpuExecute);
 
-	compare("output_CannyEdge_CPU.pgm", "output_CannyEdge.pgm");
-	compare("output_Gauss_CPU.pgm", "output_GaussSmoothed.pgm");
-	compare("output_Gradient_CPU.pgm", "output_Gradient.pgm");
-	compare("output_NonMaxSup_CPU.pgm", "output_NonMaxSup.pgm");
+    std::cout << std::endl << "Vergleich: Gauss" << std::endl;
+	compare("output_Gauss_CPU.pgm", "output_GaussSmoothed.pgm",1e-1);
+
+    std::cout << std::endl << "Vergleich: Gradient" << std::endl;
+	compare("output_Gradient_CPU.pgm", "output_Gradient.pgm",1e-1);
+
+    std::cout << std::endl << "Vergleich: Non Max Suppression" << std::endl;
+	compare("output_NonMaxSup_CPU.pgm", "output_NonMaxSup.pgm",1e-1);
+
+    std::cout << std::endl << "Vergleich: Canny Edge" << std::endl;
+	compare("output_CannyEdge_CPU.pgm", "output_CannyEdge.pgm",1e-1);
+
+
     return 0;
 }

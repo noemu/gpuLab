@@ -55,7 +55,7 @@ void CPUImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 	//
 	// Gauss calculation (schleife 10 durchläufe)
 	//
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 7; i++) {
 		std::vector<float> gaussOut = CPUImplementation::gaussConvolution();
 		h_input = gaussOut;
 	}
@@ -229,11 +229,12 @@ void CPUImplementation::nonMaximumSuppression(
 
 			float strength = getValueGlobal(h_input_Strength, x, y);
 
-			float pi_8 = M_PI / 8.0;
+			float PI = 3.14159265358979323846;
+			float pi_8 = 3.14159265358979323846 / 8.0;
 
 			if ((alpha > -1.0 * pi_8 && alpha < pi_8)
-					|| (alpha > 7.0 * pi_8 && alpha < M_PI)
-					|| (alpha < -7.0 * pi_8 && alpha > -M_PI)) {
+					|| (alpha > 7.0 * pi_8 && alpha < PI)
+					|| (alpha < -7.0 * pi_8 && alpha > -PI)) {
 				// l or r
 				nonMaximumSuppressor(h_input_Strength, h_output, strength, x, y,
 						1, 0);

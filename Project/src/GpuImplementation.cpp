@@ -132,7 +132,7 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7)
     gaussC_kernel.setArg<cl::Image2D>(1, image);
 
 
-    int countSmoothnessRuns = 10;
+    int countSmoothnessRuns = 7;
     for (int count = 0; count < countSmoothnessRuns; count++) {
         queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
             cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
