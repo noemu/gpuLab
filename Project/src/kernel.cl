@@ -6,7 +6,7 @@
 
 
 float getValueGlobal(__read_only image2d_t image, int i, int j) {
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
     return read_imagef(image, sampler, (int2){i, j}).x;
 }
 
