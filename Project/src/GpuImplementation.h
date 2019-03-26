@@ -25,7 +25,7 @@ private:
     cl::Event executionEvent;
     cl::Event copyToHostEvent;
 
-    std::size_t imageWidth, imageHeight;
+
     cl::Image2D image;
 
     std::size_t wgSizeX = 10; // ToDo no Hard coded Work Group Size
@@ -34,6 +34,10 @@ private:
 public:
     GpuImplementation(int deviceNr = 1);
     ~GpuImplementation();
+
+    std::vector<float> h_outputGpu;
+    std::size_t imageWidth, imageHeight;
+
 
     void execute(float T1, float T2);
     void printTimeMeasurement();

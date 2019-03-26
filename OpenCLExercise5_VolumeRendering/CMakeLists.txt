@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.12)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-project(gpuLab1)
+project(gpuLab5)
+
 
 #include_directories(lib)
 
@@ -18,19 +19,16 @@ LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
 find_package(OpenCL REQUIRED)
 find_package(Boost COMPONENTS filesystem REQUIRED)
-find_package(GLUT REQUIRED)
+find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
-
-
 
 #find dbghelp
 if(MSVC AND NOT DEFINED DBGHELP_INCLUDE_DIR AND NOT DEFINED DBGHELP_LIBRARY)
 	set(DBGHELP_INCLUDE_DIR "")
 	set(DBGHELP_LIBRARY "dbghelp")
 	set(DBGHELP_FOUND TRUE)
-else()
-set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 endif()
+
 
 
 # Directories
@@ -62,19 +60,15 @@ message(STATUS "Found BOOST Include Dir: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Found BOOST Library Dir: ${Boost_FILESYSTEM_LIBRARY}")
 message(STATUS "-------------------------------------")
 message(STATUS "Found Windows DEBUG Library: ${DBGHELP_LIBRARY}")
-message(STATUS "-------------------------------------")
-message(STATUS "Found GLUT Library: ${GLUT_INCLUDE_DIR} , ${GLUT_LIBRARY},${GLUT_LIBRARIES},${GLUT_INCLUDE_DIRS}")
+message(STATUS "-------------------------------------\n")
+message(STATUS "Found OPEN_GL Library: ${OPENGL_FOUND} in ${OPENGL_glx_LIBRARY}")
 message(STATUS "-------------------------------------\n")
 
 
 
 #include_directories(${client_files})
-include_directories(${OpenCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${GPULAB_LIB_DIR} ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIR}) #header files
-#link_directories(${GLUT_LIBRARY_DIR})
-#add_definitions(${GLUT_DEFINITIONS})
-#include_directories(${OpenGL_INCLUDE_DIRS})
-#link_directories(${OpenGL_LIBRARY_DIRS})
-add_executable (${PROJECT_NAME} ${source_files} ${public_header_files} ${header_files} ${lib_source_files_CPP} ${lib_source_files_C} ${client_files}) #files to compile/add to solution
+include_directories(${OpenCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${GPULAB_LIB_DIR} ${GLEW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR}) #header files
+add_executable (${PROJECT_NAME} ${source_files} ${lib_source_files_CPP} ${lib_source_files_C}) #files to compile
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON) #idk
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${DBGHELP_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY}) #link static/dynamic libraries
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${DBGHELP_LIBRARY} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES}) #link static/dynamic libraries
 set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GPULAB_DIR}") #set correct relative path to debugger, to find the cl files

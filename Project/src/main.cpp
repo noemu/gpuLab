@@ -24,6 +24,8 @@
 
 #include <boost/lexical_cast.hpp>*/
 
+#include "OpenGlRenderer.h"
+
 #include "GpuImplementation.h"
 #include "CPUImplementation.h"
 #include <Core/Time.hpp>
@@ -65,6 +67,7 @@ void compare(std::string cpuImg, std::string gpuImg, double e) {
 
 }
 
+
 /**
         Main-Method
 
@@ -73,11 +76,11 @@ void compare(std::string cpuImg, std::string gpuImg, double e) {
 */
 int main(int argc, char** argv) {
 
-    GpuImplementation gpuImplementation(
-        argc < 2 ? 1 : atoi(argv[1])); // if no start argument is given, use first device
+        new GpuImplementation(argc < 2 ? 1 : atoi(argv[1])); // if no start argument is given, use first device
+    gpuImplementation->loadImage(argc < 3 ? "lena.pgm" : argv[2]);
     gpuImplementation.loadImage(argc < 3 ? "test.pgm" : argv[2]);
     gpuImplementation.execute(0.0,0.7);
-    gpuImplementation.printTimeMeasurement();
+
 
     CPUImplementation cpuI; // if no start argument is given, use first device
     cpuI.loadImage(argc < 3 ? "test.pgm" : argv[2]);
