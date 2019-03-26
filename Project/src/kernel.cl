@@ -6,7 +6,7 @@
 
 
 float getValueGlobal(__read_only image2d_t image, int i, int j) {
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
     return read_imagef(image, sampler, (int2){i, j}).x;
 }
 
@@ -201,11 +201,13 @@ __kernel void nonMaximumSuppression(
 
     float strength = l_Strength[t_Pos];
 
-    float pi_8 = M_PI / 8.0;
+
+	float PI = 3.14159265358979323846;
+    float pi_8 = 3.14159265358979323846 / 8.0;
 
 
-    if ((alpha > -1.0 * pi_8 && alpha < pi_8) || (alpha > 7.0 * pi_8 && alpha < M_PI) ||
-        (alpha < -7.0 * pi_8 && alpha > -M_PI)) {
+    if ((alpha > -1.0 * pi_8 && alpha < pi_8) || (alpha > 7.0 * pi_8 && alpha < PI) ||
+        (alpha < -7.0 * pi_8 && alpha > -PI)) {
         // l or r
         nonMaximumSuppressor(l_Strength, h_output, strength, t_Pos_x, t_Pos_y, 1, 0);
     }
