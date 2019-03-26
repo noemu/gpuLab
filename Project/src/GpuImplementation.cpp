@@ -122,6 +122,10 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
 	queue.enqueueWriteBuffer(canny_Edge, true, 0, count*sizeof(float), h_outputGpu.data());
     queue.enqueueWriteImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
         NULL, &copyToClientEvent);
+    image = cl::Image2D(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+
+    queue.enqueueWriteImage(
+        image, true, origin, region, imageWidth * sizeof(float), 0, &(h_input[0]), NULL, &copyToClientEvent);
 
 
     //
@@ -192,6 +196,96 @@ void GpuImplementation::execute(float T1 = 0.1, float T2 = 0.7) {
     Core::writeImagePGM("output_CannyEdge.pgm", h_outputGpu, imageWidth, imageHeight);
 }
 
+void GpuImplementation::executeWithouSave(float T1 = 0.1, float T2 = 0.7) {
+
+    int count = imageWidth * imageHeight;
+    h_outputGpu = std::vector<float>(count);
+    cl::size_t<3> origin;
+    origin[0] = origin[1] = origin[2] = 0;
+    cl::size_t<3> region;
+    region[0] = imageWidth;
+    region[1] = imageHeight;
+    region[2] = 1;
+
+    ASSERT(imageHeight % wgSizeY == 0); // imagageWidth/height should be dividable by wgSize
+    ASSERT(imageWidth % wgSizeX == 0);
+
+
+    // cl::Image2D full_strength(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+    // //fix read_imagef from read_write
+    cl::Image2D strength(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+    cl::Image2D direction(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+    cl::Image2D maximised_strength(
+        context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+    cl::Buffer canny_Edge(context, CL_MEM_READ_WRITE, sizeof(float) * count);
+
+
+    // copy 0 values to GPU_BUFFER
+    memset(h_outputGpu.data(), 0, count * sizeof(float));
+    queue.enqueueWriteBuffer(canny_Edge, true, 0, count * sizeof(float), h_outputGpu.data());
+    queue.enqueueWriteImage(maximised_strength, true, origin, region, imageWidth * sizeof(float), 0, h_outputGpu.data(),
+        NULL, &copyToClientEvent);
+    image = cl::Image2D(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), imageWidth, imageHeight);
+
+    queue.enqueueWriteImage(
+        image, true, origin, region, imageWidth * sizeof(float), 0, &(h_input[0]), NULL, &copyToClientEvent);
+
+
+    //
+    // Gauss Smoothing Kernel
+    //
+    gaussC_kernel.setArg<cl::Image2D>(0, image);
+    gaussC_kernel.setArg<cl::Image2D>(1, image);
+
+
+    int countSmoothnessRuns = 7;
+    for (int count = 0; count < countSmoothnessRuns; count++) {
+        queue.enqueueNDRangeKernel(gaussC_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+            cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+    }
+
+
+    //
+    // Sobel Gradient Kernel
+    //
+
+    sobel_Kernel.setArg<cl::Image2D>(0, image);
+    sobel_Kernel.setArg<cl::Image2D>(1, strength);
+    sobel_Kernel.setArg<cl::Image2D>(2, direction);
+
+    queue.enqueueNDRangeKernel(sobel_Kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+
+    //
+    // Non Maximum Suppression
+    //
+
+    nonMaxUp_Kernel.setArg<cl::Image2D>(0, strength);
+    nonMaxUp_Kernel.setArg<cl::Image2D>(1, direction);
+    nonMaxUp_Kernel.setArg<cl::Image2D>(2, maximised_strength);
+
+    queue.enqueueNDRangeKernel(nonMaxUp_Kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+
+
+    //
+    // Hysterese Kernel
+    //
+
+    hysterese_kernel.setArg<cl::Image2D>(0, maximised_strength);
+    hysterese_kernel.setArg<cl::Buffer>(1, canny_Edge);
+    hysterese_kernel.setArg<float>(2, T1);
+    hysterese_kernel.setArg<float>(3, T2);
+
+    queue.enqueueNDRangeKernel(hysterese_kernel, cl::NullRange, cl::NDRange(imageWidth, imageHeight),
+        cl::NDRange(wgSizeX, wgSizeY), NULL, &executionEvent);
+
+    // copy output to image
+    queue.enqueueReadBuffer(canny_Edge, true, 0, count * sizeof(float), h_outputGpu.data(), NULL, &copyToHostEvent);
+
+}
+
+
 void GpuImplementation::printTimeMeasurement() {
 
     Core::TimeSpan gpuExecutionTime = OpenCL::getElapsedTime(executionEvent);
@@ -225,7 +319,7 @@ void GpuImplementation::loadImage(const boost::filesystem::path& filename) {
     imageHeight = inputHeight - (inputHeight % wgSizeY);
 
     int count = imageWidth * imageHeight;
-    std::vector<float> h_input(count);
+    h_input = std::vector<float>(count);
 
     for (size_t j = 0; j < imageHeight; j++) {
         for (size_t i = 0; i < imageWidth; i++) {

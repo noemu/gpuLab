@@ -31,6 +31,8 @@ private:
     std::size_t wgSizeX = 10; // ToDo no Hard coded Work Group Size
     std::size_t wgSizeY = 10;
 
+	std::vector<float> h_input;
+
 public:
     GpuImplementation(int deviceNr = 1);
     ~GpuImplementation();
@@ -40,6 +42,7 @@ public:
 
 
     void execute(float T1, float T2);
+    void executeWithouSave(float T1, float T2);
     void printTimeMeasurement();
     void loadImage(const boost::filesystem::path& filename);
 };
