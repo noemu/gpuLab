@@ -1,8 +1,8 @@
 lib/HDF5/SerializationKey.d: ../lib/HDF5/SerializationKey.cpp \
  ../lib/HDF5/SerializationKey.hpp \
- /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/HDF5/BaseTypes.hpp \
- /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/Core/Util.hpp \
- /home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/Core/Util.h \
+ /home/knodelmn/FaPra/gpuLab/OpenCLExercise5_VolumeRendering/lib/HDF5/BaseTypes.hpp \
+ /home/knodelmn/FaPra/gpuLab/OpenCLExercise5_VolumeRendering/lib/Core/Util.hpp \
+ /home/knodelmn/FaPra/gpuLab/OpenCLExercise5_VolumeRendering/lib/Core/Util.h \
  /usr/include/hdf5/serial/H5Rpublic.h /usr/include/hdf5/serial/H5public.h \
  /usr/include/hdf5/serial/H5pubconf.h \
  /usr/include/hdf5/serial/H5version.h \
@@ -15,11 +15,11 @@ lib/HDF5/SerializationKey.d: ../lib/HDF5/SerializationKey.cpp \
 
 ../lib/HDF5/SerializationKey.hpp:
 
-/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/HDF5/BaseTypes.hpp:
+/home/knodelmn/FaPra/gpuLab/OpenCLExercise5_VolumeRendering/lib/HDF5/BaseTypes.hpp:
 
-/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/Core/Util.hpp:
+/home/knodelmn/FaPra/gpuLab/OpenCLExercise5_VolumeRendering/lib/Core/Util.hpp:
 
-/home/jaroscrl/workspace/OpenCLExercise5_VolumeRendering/lib/Core/Util.h:
+/home/knodelmn/FaPra/gpuLab/OpenCLExercise5_VolumeRendering/lib/Core/Util.h:
 
 /usr/include/hdf5/serial/H5Rpublic.h:
 

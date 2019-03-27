@@ -52,7 +52,7 @@ all: OpenCLExercise5_VolumeRendering
 OpenCLExercise5_VolumeRendering: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L/usr/lib/x86_64-linux-gnu/hdf5/serial -L/opt/amdgpu-pro/lib/x86_64-linux-gnu/ -o "OpenCLExercise5_VolumeRendering" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L/usr/lib/x86_64-linux-gnu/hdf5/serial -o "OpenCLExercise5_VolumeRendering" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
